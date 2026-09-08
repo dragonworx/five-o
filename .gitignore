@@ -1,0 +1,11 @@
+node_modules/
+data/
+backups/
+dist/
+public/dist/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+.env
+.DS_Store
+five-o.zip

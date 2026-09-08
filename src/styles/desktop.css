@@ -1,0 +1,61 @@
+/* Desktop (≥ 768px): a split canvas — a fixed left identity panel and a scrolling
+   right column capped at the reading measure. A distinct layout, not a stretched
+   mobile one. */
+
+@media (min-width: 768px) {
+  :root { --type-base: 14px; }
+
+  .app-shell {
+    max-width: none;
+    display: grid;
+    grid-template-columns: minmax(300px, 40%) 1fr;
+    padding: 0;
+    min-height: 100dvh;
+  }
+
+  .app-header {
+    grid-column: 1;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    height: 100dvh;
+    padding: var(--space-8) var(--space-7);
+    color: var(--text);
+    background:
+      radial-gradient(70% 50% at 18% 12%, color-mix(in oklab, var(--support) 24%, transparent), transparent 62%),
+      radial-gradient(60% 55% at 95% 100%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 66%),
+      var(--surface-2);
+    border-right: var(--outline-w) solid var(--border);
+  }
+  .app-header .brand { color: var(--text); }
+  .app-header .link { color: var(--accent); }
+  .brand { font-size: var(--step-3); line-height: 1.05; }
+  .not-you { position: absolute; top: var(--space-6); right: var(--space-6); }
+
+  .screen {
+    grid-column: 2;
+    width: 100%;
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-7);
+  }
+
+  /* Action bar becomes inline on desktop rather than a fixed bar. */
+  .action-bar {
+    position: static;
+    grid-column: 2;
+    max-width: 40rem;
+    margin: 0 auto var(--space-8);
+    padding: 0 var(--space-7);
+    background: none;
+    backdrop-filter: none;
+    border-top: none;
+  }
+  .action-bar .btn { flex: 0 1 auto; min-width: 12rem; }
+
+  /* The instrument toggle only stretches full-width on mobile. */
+  .toggle { width: auto; align-self: flex-start; }
+}

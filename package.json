@@ -1,0 +1,27 @@
+{
+  "name": "five-o",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Five-O — 50th birthday RSVP app (Bun + bun:sqlite)",
+  "module": "src/server/index.ts",
+  "scripts": {
+    "dev": "bun --watch src/server/index.ts",
+    "start": "bun src/server/index.ts",
+    "build": "bun run build:client",
+    "build:client": "bun build ./src/client/main.ts --outdir ./public/dist --target browser --minify",
+    "typecheck": "tsc --noEmit",
+    "check:contrast": "bun run scripts/check-contrast.ts",
+    "test": "bun test",
+    "hash-admin-password": "bun run scripts/hash-admin-password.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@thumbmarkjs/thumbmarkjs": "^1.11.0",
+    "motion": "^13.2.0",
+    "zod": "^4.5.4"
+  }
+}

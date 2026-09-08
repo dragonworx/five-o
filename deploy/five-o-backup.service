@@ -1,0 +1,10 @@
+[Unit]
+Description=Five-O database backup (VACUUM INTO, keep 48)
+
+[Service]
+Type=oneshot
+User=five-o
+Group=five-o
+WorkingDirectory=/opt/five-o
+EnvironmentFile=/etc/five-o.env
+ExecStart=/usr/local/bin/bun run scripts/backup.ts

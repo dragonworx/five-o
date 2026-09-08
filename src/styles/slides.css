@@ -1,0 +1,97 @@
+/* Slideshow. Mobile: edge-to-edge portrait. Desktop: letterboxed 16:9 with the
+   caption beside the image. */
+
+.slides-intro { color: var(--text-muted); margin-bottom: var(--space-4); }
+
+/* A small, right-aligned "Skip to RSVP" above the stage. */
+.slides-top {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-height: var(--touch);
+  margin-bottom: var(--space-2);
+}
+.slides-skip {
+  min-height: auto;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--step--1);
+}
+
+.slides-progress {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.slides-progress .seg {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--border-strong);
+  transition: background var(--dur-slow) var(--ease-out);
+}
+.slides-progress .seg.filled { background: var(--accent); }
+
+.slide-stage {
+  margin: 0;
+  position: relative;
+  border: var(--outline-w) solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-2);
+  box-shadow: var(--shadow-pop);
+  touch-action: pan-y;
+  user-select: none;
+  aspect-ratio: 3 / 4;
+}
+.slide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.slide-img.kenburns {
+  animation: kenburns 6s ease-out both;
+}
+@keyframes kenburns {
+  from { transform: scale(1.08) translate(0, 0); }
+  to { transform: scale(1) translate(0, -1%); }
+}
+.slide-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--space-6) var(--space-4) var(--space-4);
+  color: white;
+  font-size: var(--step-0);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+}
+
+.slides-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+}
+.slides-btn {
+  font-size: var(--step-2);
+  line-height: 1;
+}
+
+@media (min-width: 768px) {
+  .slide-stage {
+    aspect-ratio: 16 / 9;
+  }
+  .slide-caption {
+    inset: auto var(--space-5) var(--space-5) var(--space-5);
+    max-width: 45%;
+    left: auto;
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+}

@@ -1,0 +1,23 @@
+[Unit]
+Description=Five-O RSVP app
+After=network.target
+
+[Service]
+Type=simple
+User=five-o
+Group=five-o
+WorkingDirectory=/opt/five-o
+EnvironmentFile=/etc/five-o.env
+ExecStart=/usr/local/bin/bun run src/server/index.ts
+Restart=always
+RestartSec=2
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/five-o
+
+[Install]
+WantedBy=multi-user.target

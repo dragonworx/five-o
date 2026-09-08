@@ -1,0 +1,43 @@
+/* Mobile-first layout: a single full-height column with a fixed, thumb-reachable
+   bottom action bar that respects the safe-area inset. */
+
+.app-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 var(--space-4) calc(var(--touch) + env(safe-area-inset-bottom) + var(--space-6));
+}
+
+.screen { flex: 1; padding-bottom: var(--space-6); }
+
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-bar);
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+  background: color-mix(in oklab, var(--surface) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border-top: var(--outline-w) solid var(--border);
+}
+.action-bar .btn { flex: 1; }
+
+/* Compact CTA (RSVP): keep the button snug rather than edge-to-edge, with
+   comfortable margin and padding around it. */
+.action-bar.compact {
+  justify-content: center;
+  padding: var(--space-4) var(--space-6) calc(var(--space-4) + env(safe-area-inset-bottom));
+}
+.action-bar.compact .btn {
+  flex: 0 1 auto;
+  min-width: 12rem;
+  padding: 0 var(--space-7);
+}
+
+/* The left identity panel only exists on desktop. */
+.identity-panel { display: none; }

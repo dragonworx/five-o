@@ -1,0 +1,7 @@
+fifty.example.com {
+	encode zstd gzip
+	reverse_proxy localhost:3000
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+}

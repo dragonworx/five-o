@@ -1,0 +1,89 @@
+/* Static design tokens + semantic colour mapping. The palette/radius/font custom
+   properties themselves are injected inline from the config (css-vars.ts); this
+   file derives spacing, elevation, fluid type and surface tokens from them.
+
+   The theme is dark-first: the default `:root` tokens paint the near-black
+   canvas so there is no light flash before the client boots. A
+   `[data-theme="light"]` override remains for anyone who explicitly opts into a
+   light mode. Tints use oklab mixing so they stay perceptually even. */
+
+:root {
+  color-scheme: dark;
+
+  /* Spacing scale — compact, to conserve vertical rhythm */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 2.25rem;
+  --space-8: 3rem;
+
+  /* Fluid type scale built from --type-base / --type-ratio */
+  --step--1: calc(var(--type-base) / var(--type-ratio));
+  --step-0: var(--type-base);
+  --step-1: calc(var(--type-base) * var(--type-ratio));
+  --step-2: calc(var(--step-1) * var(--type-ratio));
+  --step-3: calc(var(--step-2) * var(--type-ratio));
+  --step-4: calc(var(--step-3) * var(--type-ratio));
+
+  /* Semantic surface tokens — dark theme (default) */
+  --surface: var(--paper-dark);
+  --surface-2: color-mix(in oklab, var(--paper-dark) 82%, var(--paper));
+  --surface-raised: color-mix(in oklab, var(--paper-dark) 90%, var(--paper));
+  --text: var(--paper);
+  --text-muted: color-mix(in oklab, var(--paper) 58%, var(--paper-dark));
+  --border: color-mix(in oklab, var(--paper) 12%, transparent);
+  --border-strong: color-mix(in oklab, var(--paper) 22%, transparent);
+  --accent-tint: color-mix(in oklab, var(--accent) 18%, var(--paper-dark));
+  --focus-ring: var(--accent);
+
+  /* Modern elevation — hairline borders + soft, low shadows (no hard offset
+     "stickers"). The --shadow-pop* names are kept so component rules don't need
+     rewiring; they now resolve to subtle depth. */
+  --outline: var(--border);
+  --outline-w: 1px;
+  --shadow-1: 0 1px 2px color-mix(in oklab, black 55%, transparent);
+  --shadow-2: 0 12px 34px color-mix(in oklab, black 60%, transparent);
+  --shadow-pop: 0 10px 30px color-mix(in oklab, black 55%, transparent);
+  --shadow-pop-sm: 0 4px 14px color-mix(in oklab, black 45%, transparent);
+  --shadow-pop-accent: 0 8px 26px color-mix(in oklab, var(--accent) 26%, transparent);
+  --glow-accent:
+    0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent),
+    0 8px 26px color-mix(in oklab, var(--accent) 28%, transparent);
+
+  /* Restrained background wash — two low-opacity glows on the near-black canvas */
+  --bg-wash:
+    radial-gradient(60% 50% at 12% -5%, color-mix(in oklab, var(--support) 22%, transparent), transparent 70%),
+    radial-gradient(52% 45% at 100% 0%, color-mix(in oklab, var(--accent) 15%, transparent), transparent 72%);
+
+  --measure: 34rem;
+  --touch: 48px;
+  --z-bar: 40;
+  --z-confetti: 60;
+
+  /* Shared easing + timing for UI state transitions */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 0.14s;
+  --dur-mid: 0.24s;
+  --dur-slow: 0.36s;
+}
+
+/* Optional light override (config darkMode: "light") */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --surface: var(--paper);
+  --surface-2: color-mix(in oklab, var(--paper) 92%, var(--ink));
+  --surface-raised: color-mix(in oklab, var(--paper) 98%, white);
+  --text: var(--ink);
+  --text-muted: color-mix(in oklab, var(--muted) 55%, var(--ink));
+  --border: color-mix(in oklab, var(--ink) 12%, transparent);
+  --border-strong: color-mix(in oklab, var(--ink) 22%, transparent);
+  --accent-tint: color-mix(in oklab, var(--accent) 14%, var(--paper));
+  --shadow-1: 0 1px 2px color-mix(in oklab, var(--ink) 12%, transparent);
+  --shadow-2: 0 12px 34px color-mix(in oklab, var(--ink) 16%, transparent);
+  --shadow-pop: 0 10px 30px color-mix(in oklab, var(--ink) 14%, transparent);
+  --shadow-pop-sm: 0 4px 14px color-mix(in oklab, var(--ink) 12%, transparent);
+}
