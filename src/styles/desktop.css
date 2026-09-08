@@ -1,14 +1,18 @@
-/* Desktop (≥ 768px): a split canvas — a fixed left identity panel and a scrolling
-   right column capped at the reading measure. A distinct layout, not a stretched
-   mobile one. */
+/* Desktop (≥ 768px): a split canvas — a fixed left identity panel and a wide
+   scrolling right column that fills most of the viewport. A distinct layout, not
+   a stretched mobile one. */
 
 @media (min-width: 768px) {
   :root { --type-base: 14px; }
 
+  /* The mobile shell is capped at a narrow reading measure by #app in html.ts;
+     on desktop the split-canvas layout takes the full viewport instead. */
+  #app { max-width: none; padding: 0; margin: 0; }
+
   .app-shell {
     max-width: none;
     display: grid;
-    grid-template-columns: minmax(300px, 40%) 1fr;
+    grid-template-columns: minmax(320px, 34%) 1fr;
     padding: 0;
     min-height: 100dvh;
   }
@@ -38,18 +42,18 @@
   .screen {
     grid-column: 2;
     width: 100%;
-    max-width: 40rem;
+    max-width: 52rem;
     margin: 0 auto;
-    padding: var(--space-8) var(--space-7);
+    padding: var(--space-8) var(--space-8);
   }
 
   /* Action bar becomes inline on desktop rather than a fixed bar. */
   .action-bar {
     position: static;
     grid-column: 2;
-    max-width: 40rem;
+    max-width: 52rem;
     margin: 0 auto var(--space-8);
-    padding: 0 var(--space-7);
+    padding: 0 var(--space-8);
     background: none;
     backdrop-filter: none;
     border-top: none;
