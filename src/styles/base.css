@@ -73,6 +73,7 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   padding: var(--space-2);
   border-radius: var(--radius-sm);
   transition: color var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+  white-space: nowrap;
 }
 .link:hover { opacity: 0.8; }
 
@@ -276,6 +277,18 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
 }
 .lookup summary:hover { opacity: 0.8; }
 .lookup-body { margin-top: var(--space-3); display: flex; flex-direction: column; gap: var(--space-3); }
+
+/* Landing: identity hero + RSVP form on a single screen, kept compact so the name
+   and the yes/no choice sit above the fold on a phone. */
+.hero { text-align: center; margin-bottom: var(--space-4); }
+.hero h1 { font-size: var(--step-2); }
+.hero .lead { margin: var(--space-2) 0 var(--space-1); }
+.hero .muted { margin: 0; }
+.hero + .lookup { margin: 0 0 var(--space-4); text-align: center; }
+.rsvp-form .attend-question { margin-top: var(--space-4); }
+.rsvp-form .choice-grid { margin: var(--space-3) 0; }
+.rsvp-form .choice-card { min-height: 60px; }
+.screen > .privacy-note { margin-top: var(--space-4); text-align: center; }
 
 /* Details */
 .venue { font-style: normal; }

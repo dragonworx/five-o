@@ -12,6 +12,7 @@
     "build:client": "bun build ./src/client/main.ts --outdir ./public/dist --target browser --minify",
     "typecheck": "tsc --noEmit",
     "check:contrast": "bun run scripts/check-contrast.ts",
+    "slides": "bun run scripts/slides.ts",
     "test": "bun test",
     "hash-admin-password": "bun run scripts/hash-admin-password.ts",
     "docker:refresh": "bun docker:build && bun docker:up",

@@ -62,15 +62,26 @@ Loaded by compose at runtime (gitignored, never baked into the image).
 
 If `.env` is missing the container starts, then crashes on the missing secrets (`docker logs five-o`). After editing `.env`, run `docker compose up -d` to recreate the container; `restart` won't pick it up.
 
-### Event details, copy, theme
+### Changing content
 
-`src/config/party.config.ts`. Not env-driven, so rebuild the image after editing (`bun run docker:refresh`).
+`bun run docker:refresh` is all you need after editing content. Do **not** run `build:client`: the server bundles the client and admin at boot, and `build:client` only writes to the gitignored `public/dist/`, which nothing serves.
+
+The image copies in `src/`, `public/` and `scripts/` at build time, so these all need a refresh:
+
+| What | Where |
+| --- | --- |
+| Event details, copy, form, theme | `src/config/*.ts` (one file per section; `party.config.ts` only assembles them) |
+| Slide captions and order | `src/config/slides.ts` |
+| Slide images | `public/img/slides/` |
+| CSS | `src/styles/*.css` |
+
+None of it is env-driven. The RSVP database is in the `/data` volume, so a refresh leaves it untouched.
 
 `server.trustProxy` is `true`, so the client IP comes from proxy headers. Keep the port bound to loopback (as compose does) and put Caddy in front (`deploy/Caddyfile`, replace `fifty.example.com`).
 
 ### Docker dev loop
 
-`bun run docker:watch` bind-mounts `src/` and `public/` and runs `bun --hot`, so edits show up without rebuilding. It still uses `.env`, so production rules apply.
+`bun run docker:watch` bind-mounts `src/` and `public/` and runs `bun --hot`, so you can skip the image rebuild while editing content. It reloads server modules only: the client bundle and the CSS are built once at boot, so restart the container (`docker compose restart five-o`) after changing those. It still uses `.env`, so production rules apply.
 
 Other scripts: `docker:up`, `docker:down`, `docker:build`.
 

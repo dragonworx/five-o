@@ -80,15 +80,12 @@ export interface CopyConfig {
   /** May contain the "{name}" placeholder. */
   landingReturning: string;
   identityPrompt: string;
-  formIntro: string;
   attendingQuestion: string;
   attendingYes: string;
   attendingNo: string;
   declineThanks: string;
-  /** CTA that launches the slideshow from the landing screen. */
+  /** Link that replays the slideshow. */
   slidesCta: string;
-  /** Label for the skip control at the top of the slideshow. */
-  skipToRsvp: string;
   /** May contain the "{count}" placeholder. */
   slidesIntro: string;
   /** May contain the "{name}" placeholder. */
@@ -128,7 +125,6 @@ export interface SlideItem {
 export interface SlidesConfig {
   /** 0 disables autoplay. */
   autoAdvanceMs: number;
-  allowSkip: boolean;
   showProgressBar: boolean;
   /** Ordered list — reorder freely; the UI adapts to the array length. */
   items: readonly SlideItem[];

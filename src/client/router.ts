@@ -3,7 +3,7 @@ import { transitionTo } from "./motion";
 // Minimal History-API router. Each screen is a render function; navigating pushes
 // a history entry so the phone back-gesture steps back through the flow.
 
-export type ScreenName = "landing" | "rsvp" | "slides" | "details" | "farewell";
+export type ScreenName = "landing" | "slides" | "details" | "farewell";
 
 type Renderer = (root: HTMLElement) => void;
 

@@ -1,20 +1,14 @@
-/* Slideshow. Mobile: edge-to-edge portrait. Desktop: letterboxed 16:9 with the
-   caption beside the image. */
+/* Slideshow. The images are 3:4 portraits, shown uncropped everywhere. Mobile:
+   edge-to-edge. Desktop: a centred column whose width is derived from the
+   viewport height so the whole slide (stage + controls) fits on screen. */
 
 .slides-intro { color: var(--text-muted); margin-bottom: var(--space-4); }
 
-/* A small, right-aligned "Skip to RSVP" above the stage. */
+/* Empty spacer above the stage. It used to hold the skip button; it stays so the
+   slides keep their position. */
 .slides-top {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
   min-height: var(--touch);
   margin-bottom: var(--space-2);
-}
-.slides-skip {
-  min-height: auto;
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--step--1);
 }
 
 .slides-progress {
@@ -85,8 +79,14 @@
 }
 
 @media (min-width: 768px) {
-  .slide-stage {
-    aspect-ratio: 16 / 9;
+  /* Stage height = 100dvh minus ~19rem of chrome (screen padding, spacer, intro,
+     progress bar, controls); width follows from 3:4. Every sibling shares that
+     width so the progress bar and controls line up with the image. The floor
+     stops it shrinking to a thumbnail on short windows (the page scrolls
+     instead), and 100% stops it outgrowing the column on tall ones. */
+  .screen:has(> .slide-stage) > * {
+    max-width: min(100%, max(18rem, calc((100dvh - 19rem) * 3 / 4)));
+    margin-inline: auto;
   }
   .slide-caption {
     inset: auto var(--space-5) var(--space-5) var(--space-5);

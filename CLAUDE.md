@@ -14,6 +14,7 @@ bun test tests/score.test.ts # one file
 bun test -t "decline"        # tests matching a name
 bun run typecheck            # tsc --noEmit (covers src, scripts, tests)
 bun run check:contrast       # WCAG AA check of the palette in party.config.ts; exits 1 on failure
+bun run slides               # ImageMagick: normalise public/img/slides to 896×1195 q78 (--check = report only)
 bun run hash-admin-password  # argon2id hash for ADMIN_PASSWORD_HASH
 bun run docker:refresh       # production: docker compose build && up -d
 bun run docker:watch         # docker dev loop (bind-mounts src/ and public/, still needs .env)
@@ -33,7 +34,7 @@ bun run docker:watch         # docker dev loop (bind-mounts src/ and public/, st
 
 **Server** (`src/server/index.ts`): one `Bun.serve`. It serves the shell at `/`, the in-memory client bundle at `/client.js`, the concatenated CSS at `/app.css`, `/api/config`, `/healthz`, then falls back to `/admin*` → `admin/`, `/api/*` → `routes/api.ts` (a method+path table), else static files from `public/`. The SQLite connection (`db.ts`) opens and runs the forward-only `migrations/*.sql` at import time, so importing `db.ts` has side effects.
 
-**Client** (`src/client`): vanilla TS SPA with a small hash router (`#/landing|rsvp|slides|details|farewell`). `main.ts` boots by fetching config, collecting device signals, calling `/api/identify`, and storing the outcome in `store.ts`. Screen order and gating live in `flow.ts` (for example only guests who have answered the RSVP get the details link, and decliners only see the venue if `form.decline.showDetails` is set). `src/admin` is a separate bundle for the admin console.
+**Client** (`src/client`): vanilla TS SPA with a small hash router (`#/landing|slides|details|farewell`). `main.ts` boots by fetching config, collecting device signals, calling `/api/identify`, and storing the outcome in `store.ts`. The journey is landing (identity + RSVP form, `rsvp-form.ts`) → slides → details. Screen order and gating live in `flow.ts` (a first RSVP goes through the slides, an edit skips them, only guests who have answered get the details link, and decliners only see the venue if `form.decline.showDetails` is set). `src/admin` is a separate bundle for the admin console.
 
 **Guest identity (the non-obvious part).** There are no logins. Returning guests are recognised by combining several signals, so a guest can RSVP once and be greeted by name later, even after clearing one store.
 - The client mirrors one visitor UUID across localStorage, IndexedDB and Cache Storage (`client/storage.ts`), adds a ThumbmarkJS fingerprint, and the server also uses a signed cookie and a hashed IP /24 + UA family (`server/identity/signals.ts`, `hash.ts`). Raw IPs and tokens are stored only as peppered hashes.

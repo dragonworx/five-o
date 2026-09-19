@@ -10,11 +10,11 @@ export function render(root: HTMLElement): void {
   const actions: HTMLElement[] = [
     primaryButton("Actually, I can make it", () => {
       setFormIntent(true);
-      navigate("rsvp");
+      navigate("landing");
     }),
   ];
   if (canWatchSlides) {
-    actions.push(ghostButton("Watch the slides again", () => navigate("slides")));
+    actions.push(ghostButton(copy().slidesCta, () => navigate("slides")));
   }
 
   const content = [

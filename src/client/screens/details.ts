@@ -40,7 +40,7 @@ export function render(root: HTMLElement): void {
   const g = guest();
   // The details page is only reachable once an RSVP has been given.
   if (!g || !hasRsvped(g)) {
-    navigate("rsvp", { replace: true });
+    navigate("landing", { replace: true });
     return;
   }
   if (!attendingCanSeeDetails(g)) {
@@ -71,8 +71,8 @@ export function render(root: HTMLElement): void {
 
   children.push(
     el("div", { class: "stack cross-links" }, [
-      ghostButton("Edit my details", () => navigate("rsvp")),
-      ghostButton("Watch the slides again", () => navigate("slides")),
+      ghostButton("Edit my RSVP", () => navigate("landing")),
+      ghostButton(copy().slidesCta, () => navigate("slides")),
     ]),
   );
 

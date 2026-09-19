@@ -1,10 +1,9 @@
-import { rsvp, type Diet, type GuestSummary } from "../api";
-import { actionBar, primaryButton, screen } from "../components";
-import { el, mount, on } from "../dom";
-import { destinationForGuest } from "../flow";
-import { collapse, confettiBurst, springIn } from "../motion";
-import { navigate } from "../router";
-import { config, copy, formIntent, guest, overriddenFrom, setFormIntent, setGuest, setOverriddenFrom, signals } from "../store";
+import { rsvp, type Diet, type GuestSummary } from "./api";
+import { primaryButton } from "./components";
+import { el, on } from "./dom";
+import { hasRsvped } from "./flow";
+import { collapse, confettiBurst } from "./motion";
+import { config, copy, formIntent, guest, overriddenFrom, setFormIntent, setGuest, setOverriddenFrom, signals } from "./store";
 
 interface FormState {
   name: string;
@@ -108,8 +107,21 @@ function buildNoSection(state: FormState): HTMLElement {
   return el("div", { class: "reveal", attrs: { hidden: "" } }, children);
 }
 
-export function render(root: HTMLElement): void {
-  const state = initialState(guest());
+export interface RsvpForm {
+  /** The form body: name, attendance, and the yes/no follow-ups. */
+  fields: HTMLElement[];
+  /** The submit button, so the caller can place it in an action bar. */
+  submit: HTMLButtonElement;
+}
+
+interface RsvpFormOptions {
+  /** Called once the RSVP is saved. `first` is true when this guest had not answered before. */
+  onSaved: (saved: GuestSummary, first: boolean) => void;
+}
+
+export function buildRsvpForm({ onSaved }: RsvpFormOptions): RsvpForm {
+  const existing = guest();
+  const state = initialState(existing);
   setFormIntent(null);
 
   const nameInput = el("input", {
@@ -131,7 +143,8 @@ export function render(root: HTMLElement): void {
   const yesCard = choiceCard(copy().attendingYes, "yes");
   const noCard = choiceCard(copy().attendingNo, "no");
 
-  const submit = primaryButton("Send RSVP", () => void doSubmit());
+  const answered = existing !== null && hasRsvped(existing);
+  const submit = primaryButton(answered ? "Update RSVP" : "Send RSVP", () => void doSubmit());
 
   const chooseAttending = (value: boolean): void => {
     state.attending = value;
@@ -173,24 +186,13 @@ export function render(root: HTMLElement): void {
       });
       setGuest(res.guest);
       setOverriddenFrom(null);
-      navigate(destinationForGuest(res.guest));
+      onSaved(res.guest, !answered);
     } catch {
       error.textContent = "Something went wrong. Please try again.";
       submit.disabled = false;
     }
   }
 
-  const content = [
-    el("h1", {}, [copy().formIntro]),
-    el("label", { class: "field" }, [el("span", { class: "field-label" }, ["Your name"]), nameInput]),
-    el("h2", { class: "attend-question" }, [copy().attendingQuestion]),
-    el("div", { class: "choice-grid" }, [yesCard, noCard]),
-    yesSection,
-    noSection,
-    error,
-  ];
-
-  mount(root, screen(content, actionBar([submit], "compact")));
   updateSubmit();
   if (state.attending !== null) {
     yesSection.hidden = !state.attending;
@@ -200,8 +202,16 @@ export function render(root: HTMLElement): void {
     yesCard.setAttribute("aria-pressed", String(state.attending));
     noCard.setAttribute("aria-pressed", String(!state.attending));
   }
-  const scr = root.querySelector(".screen");
-  if (scr) springIn(scr);
+
+  const fields = [
+    el("label", { class: "field" }, [el("span", { class: "field-label" }, ["Your name"]), nameInput]),
+    el("h2", { class: "attend-question" }, [copy().attendingQuestion]),
+    el("div", { class: "choice-grid" }, [yesCard, noCard]),
+    yesSection,
+    noSection,
+    error,
+  ];
+  return { fields, submit };
 }
 
 function choiceCard(label: string, kind: "yes" | "no"): HTMLButtonElement {

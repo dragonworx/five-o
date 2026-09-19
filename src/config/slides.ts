@@ -1,6 +1,5 @@
 export default {
     autoAdvanceMs: 5200, // 0 disables autoplay
-    allowSkip: true,
     showProgressBar: true,
     // ── Edit captions and reorder freely. Order here is the display order. ──
     // Roughly chronological "fifty years in pictures". Drop in / remove items
@@ -43,8 +42,13 @@ export default {
       },
       {
         src: "/img/slides/yodeling.jpeg",
-        caption: "2017. Release critically aclaimed Death Metal Yodelling album.",
+        caption: "2017. Released critically aclaimed Death Metal Yodelling album.",
         alt: "2017. Release critically aclaimed Death Metal Yodelling album.",
+      },
+      {
+        src: "/img/slides/beethoven.jpeg",
+        caption: "2018. Went on to win a Grammy for next Yodelling albumn with Beethoven.",
+        alt: "2018. Went on to win a Grammy for next Yodelling albumn with Beethoven.",
       },
       {
         src: "/img/slides/starship-troopers.jpeg",
@@ -53,8 +57,8 @@ export default {
       },
       {
         src: "/img/slides/trump.jpeg",
-        caption: "2025. Awared 'Most biggest guy' by Trump. He show know.",
-        alt: "2025. Awared 'Most biggest guy' by Trump. He show know.",
+        caption: "2025. Awared 'Most coolest guy' by Trump, and he show know.",
+        alt: "2025. Awared 'Most coolest guy' by Trump, and he show know.",
       },
     ],
   };

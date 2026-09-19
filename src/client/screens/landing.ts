@@ -1,9 +1,10 @@
 import { claim, lookup, type GuestSummary } from "../api";
-import { card, ghostButton, primaryButton, screen } from "../components";
+import { actionBar, card, ghostButton, primaryButton, screen } from "../components";
 import { el, interpolate, mount } from "../dom";
-import { destinationForGuest, hasRsvped } from "../flow";
+import { destinationAfterRsvp, destinationForGuest, hasRsvped } from "../flow";
 import { springIn } from "../motion";
 import { navigate } from "../router";
+import { buildRsvpForm } from "../rsvp-form";
 import {
   ambiguous,
   config,
@@ -31,25 +32,37 @@ async function claimIdentity(guestId: string, claimToken: string): Promise<void>
   }
 }
 
-function recognisedView(g: GuestSummary): HTMLElement {
-  const greeting = interpolate(copy().landingReturning, { name: g.name });
-  const actions: HTMLElement[] = [primaryButton(copy().slidesCta, () => navigate("slides"))];
-  // The details link only appears once an RSVP has been given, now or previously.
-  if (hasRsvped(g)) {
-    actions.push(ghostButton(detailsLinkLabel(g), () => navigate(destinationForGuest(g))));
-  }
-  actions.push(ghostButton(hasRsvped(g) ? "Edit my RSVP" : "RSVP now", () => navigate("rsvp")));
-  return card([
-    el("h1", {}, [copy().landingTitle]),
-    el("p", { class: "lead" }, [greeting]),
-    el("p", { class: "muted" }, [config().event.tagline]),
-    el("div", { class: "stack" }, actions),
-    privacyNote(),
-  ]);
-}
-
 function detailsLinkLabel(g: GuestSummary): string {
   return g.attending === false ? "See your message" : "See event details";
+}
+
+// The landing screen is identity first, then the RSVP: who you are (greeting, or
+// a way back to an earlier RSVP), followed by the form and its submit bar.
+function identityView(g: GuestSummary | null): { content: HTMLElement[]; footer: HTMLElement } {
+  const form = buildRsvpForm({
+    onSaved: (saved, first) => navigate(destinationAfterRsvp(saved, first)),
+  });
+
+  const lead = g ? interpolate(copy().landingReturning, { name: g.name }) : copy().landingNew;
+  const hero = el("div", { class: "hero" }, [
+    el("h1", {}, [copy().landingTitle]),
+    el("p", { class: "lead" }, [lead]),
+    el("p", { class: "muted" }, [config().event.tagline]),
+  ]);
+
+  const content: HTMLElement[] = [hero];
+  // A guest we don't recognise can look themselves up before filling anything in.
+  if (!g) content.push(lookupPanel());
+  content.push(el("div", { class: "rsvp-form" }, form.fields));
+  // Once an RSVP exists, the venue / farewell page is a link away.
+  if (g && hasRsvped(g)) {
+    content.push(
+      el("div", { class: "stack" }, [ghostButton(detailsLinkLabel(g), () => navigate(destinationForGuest(g)))]),
+    );
+  }
+  content.push(privacyNote());
+
+  return { content, footer: actionBar([form.submit], "compact") };
 }
 
 function softView(sm: SoftMatchState): HTMLElement {
@@ -85,17 +98,6 @@ function ambiguousView(amb: AmbiguousState): HTMLElement {
   ]);
 }
 
-function newView(): HTMLElement {
-  return card([
-    el("h1", {}, [copy().landingTitle]),
-    el("p", { class: "lead" }, [copy().landingNew]),
-    el("p", { class: "muted" }, [config().event.tagline]),
-    el("div", { class: "stack" }, [primaryButton(copy().slidesCta, () => navigate("slides"))]),
-    lookupPanel(),
-    privacyNote(),
-  ]);
-}
-
 // Cross-device recovery: the single most reliable path when the SMS webview
 // sandboxes storage away from the guest's normal browser.
 function lookupPanel(): HTMLElement {
@@ -122,7 +124,7 @@ async function runLookup(name: string, results: HTMLElement): Promise<void> {
   if (!trimmed) return;
   const res = await lookup(trimmed);
   if (res.outcome === "new" || res.matches.length === 0 || !res.claimToken) {
-    mount(results, el("p", { class: "muted" }, ["No match found. You can RSVP as new above."]));
+    mount(results, el("p", { class: "muted" }, ["No match found. Just RSVP below."]));
     return;
   }
   const token = res.claimToken;
@@ -150,13 +152,17 @@ export function render(root: HTMLElement): void {
   const g = guest();
   const amb = ambiguous();
   const sm = softMatch();
-  let view: HTMLElement;
-  if (g) view = recognisedView(g);
-  else if (amb) view = ambiguousView(amb);
-  else if (sm) view = softView(sm);
-  else view = newView();
 
-  mount(root, screen([view]));
-  const scr = root.querySelector(".screen");
-  if (scr) springIn(scr);
+  // Unresolved matches take over the screen: identity is settled before the form.
+  let scr: HTMLElement;
+  if (!g && amb) scr = screen([ambiguousView(amb)]);
+  else if (!g && sm) scr = screen([softView(sm)]);
+  else {
+    const { content, footer } = identityView(g);
+    scr = screen(content, footer);
+  }
+
+  mount(root, scr);
+  const main = root.querySelector(".screen");
+  if (main) springIn(main);
 }

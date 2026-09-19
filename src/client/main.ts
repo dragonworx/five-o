@@ -4,7 +4,6 @@ import { registerScreen, startRouter } from "./router";
 import { getVisitorTokens } from "./storage";
 import { config, initStore, setAmbiguous, setGuest, setSoftMatch } from "./store";
 import * as landing from "./screens/landing";
-import * as rsvp from "./screens/rsvp";
 import * as slides from "./screens/slides";
 import * as details from "./screens/details";
 import * as farewell from "./screens/farewell";
@@ -26,7 +25,6 @@ function applyTheme(): void {
 
 function registerScreens(): void {
   registerScreen("landing", landing.render);
-  registerScreen("rsvp", rsvp.render);
   registerScreen("slides", slides.render);
   registerScreen("details", details.render);
   registerScreen("farewell", farewell.render);

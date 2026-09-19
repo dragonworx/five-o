@@ -1,5 +1,5 @@
 import { slidesComplete } from "../api";
-import { ghostButton, screen } from "../components";
+import { screen } from "../components";
 import { el, interpolate, mount, on } from "../dom";
 import { destinationForGuest } from "../flow";
 import { springIn } from "../motion";
@@ -36,11 +36,11 @@ function controlButton(glyph: string, label: string): HTMLButtonElement {
   return el("button", { class: "btn btn-round slides-btn", type: "button", attrs: { "aria-label": label } }, [glyph]);
 }
 
-// After the slideshow the guest lands on the RSVP form; a returning guest who
-// already answered skips straight to their destination.
+// The slideshow leads to the final screen (details for guests who are coming).
+// Someone who reached it without a saved RSVP goes back to the landing screen.
 function routeAfterSlides(): void {
   const g = guest();
-  navigate(g && g.attending !== null ? destinationForGuest(g) : "rsvp");
+  navigate(g ? destinationForGuest(g) : "landing");
 }
 
 async function completeSlides(): Promise<void> {
@@ -169,15 +169,8 @@ export function render(root: HTMLElement): void {
   on(nextBtn, "click", next);
   on(playBtn, "click", togglePause);
 
-  const topBar = el("div", { class: "slides-top" }, []);
-  if (config().slides.allowSkip) {
-    const skip = ghostButton(copy().skipToRsvp, routeAfterSlides);
-    skip.classList.add("slides-skip");
-    topBar.append(skip);
-  }
-
   const content: (Node | string)[] = [
-    topBar,
+    el("div", { class: "slides-top", attrs: { "aria-hidden": "true" } }),
     el("p", { class: "slides-intro" }, [interpolate(copy().slidesIntro, { count: items.length })]),
   ];
   if (config().slides.showProgressBar) content.push(bar);
