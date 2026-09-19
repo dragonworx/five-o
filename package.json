@@ -13,7 +13,12 @@
     "typecheck": "tsc --noEmit",
     "check:contrast": "bun run scripts/check-contrast.ts",
     "test": "bun test",
-    "hash-admin-password": "bun run scripts/hash-admin-password.ts"
+    "hash-admin-password": "bun run scripts/hash-admin-password.ts",
+    "docker:refresh": "bun docker:build && bun docker:up",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:watch": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build"
   },
   "devDependencies": {
     "@types/bun": "latest",

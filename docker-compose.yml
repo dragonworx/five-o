@@ -1,0 +1,20 @@
+services:
+  five-o:
+    build: .
+    image: five-o:latest
+    container_name: five-o
+    restart: unless-stopped
+
+    # Bind to loopback so the container is only reachable from the host.
+    # Drop the `127.0.0.1:` prefix if you want it reachable directly.
+    ports:
+      - "127.0.0.1:3000:3000"
+
+    volumes:
+      - ./data:/data
+
+    # Secrets live in a host-only .env file (copy .env.example, fill it in,
+    # keep DB_PATH/BACKUPS_DIR pointed at /data since that's the volume).
+    env_file:
+      - path: .env
+        required: false

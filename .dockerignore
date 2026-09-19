@@ -1,0 +1,19 @@
+data
+.data
+.git
+.gitignore
+.DS_Store
+*.log
+README.md
+docker-compose.yml
+docker-compose.dev.yml
+.dockerignore
+Dockerfile
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Secrets stay on the host; the container receives them via env_file / -e.
+.env
+.env.local
+.env.*.local
