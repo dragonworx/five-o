@@ -1,7 +1,7 @@
 import { formatEventWhen, toGoogleCalendarUrl, toIcsDataUrl } from "../calendar";
-import { card, ghostButton, screen } from "../components";
-import { el, interpolate, mount } from "../dom";
-import { attendingCanSeeDetails, hasRsvped } from "../flow";
+import { actionBar, card, ghostButton, primaryButton, screen } from "../components";
+import { el, mount } from "../dom";
+import { attendingCanSeeDetails, canPreviewDetails } from "../flow";
 import { springIn } from "../motion";
 import { navigate } from "../router";
 import { config, copy, guest } from "../store";
@@ -38,12 +38,9 @@ function notesBlock(): HTMLElement | null {
 
 export function render(root: HTMLElement): void {
   const g = guest();
-  // The details page is only reachable once an RSVP has been given.
-  if (!g || !hasRsvped(g)) {
-    navigate("landing", { replace: true });
-    return;
-  }
-  if (!attendingCanSeeDetails(g)) {
+  // Guests who haven't answered yet may preview the details, with a way back to the form.
+  const preview = canPreviewDetails(g);
+  if (g && !attendingCanSeeDetails(g)) {
     navigate("farewell", { replace: true });
     return;
   }
@@ -56,7 +53,7 @@ export function render(root: HTMLElement): void {
   );
 
   const children: (Node | string)[] = [
-    el("h1", {}, [interpolate(copy().detailsIntro, { name: g.name })]),
+    el("h1", {}, [copy().detailsTitle]),
     // el("p", { class: "lead" }, [event.title]),
     card([
       addressBlock(),
@@ -67,16 +64,21 @@ export function render(root: HTMLElement): void {
   ];
 
   const notes = notesBlock();
-  if (notes) children.push(card([el("h2", {}, ["Good to know"]), notes]));
+  if (notes) children.push(card([notes]));
 
   children.push(
     el("div", { class: "stack cross-links" }, [
-      ghostButton("Edit my RSVP", () => navigate("landing")),
+      ...(preview ? [] : [ghostButton("Edit my RSVP", () => navigate("landing"))]),
       ghostButton(copy().slidesCta, () => navigate("slides")),
     ]),
   );
 
-  mount(root, screen(children));
+  // Before an RSVP, keep the way back to the form pinned to the bottom of the screen.
+  const footer = preview
+    ? actionBar([primaryButton(copy().detailsRsvpCta, () => navigate("landing"))], "compact")
+    : undefined;
+
+  mount(root, screen(children, footer));
   const scr = root.querySelector(".screen");
   if (scr) springIn(scr);
 }

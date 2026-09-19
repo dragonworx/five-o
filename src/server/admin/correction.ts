@@ -15,7 +15,7 @@ const correctionSchema = z.object({
   kids: z.number().int().min(0).max(50).optional(),
   isMusician: z.boolean().optional(),
   diet: dietSchema.nullable().optional(),
-  message: z.string().max(2000).nullable().optional(),
+  message: z.string().max(500).nullable().optional(),
 });
 
 export async function handleCorrection(req: Request, guestId: string): Promise<Response> {

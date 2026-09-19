@@ -93,8 +93,10 @@ export interface CopyConfig {
   slidesCta: string;
   /** May contain the "{count}" placeholder. */
   slidesIntro: string;
-  /** May contain the "{name}" placeholder. */
-  detailsIntro: string;
+  /** Heading on the details page, the same for new and returning guests. */
+  detailsTitle: string;
+  /** Call to action on the details page that takes a guest who has not RSVPed back to the form. */
+  detailsRsvpCta: string;
   musicianYes: string;
 }
 

@@ -1,7 +1,7 @@
 import { claim, lookup, type GuestSummary } from "../api";
-import { actionBar, card, ghostButton, primaryButton, screen } from "../components";
-import { el, interpolate, mount } from "../dom";
-import { destinationAfterRsvp, destinationForGuest, hasRsvped } from "../flow";
+import { actionBar, card, ghostButton, notYouLink, primaryButton, screen } from "../components";
+import { el, interpolate, mount, on } from "../dom";
+import { canPreviewDetails, destinationAfterRsvp, destinationForGuest, hasRsvped } from "../flow";
 import { springIn } from "../motion";
 import { navigate } from "../router";
 import { buildRsvpForm } from "../rsvp-form";
@@ -39,20 +39,23 @@ function detailsLinkLabel(g: GuestSummary): string {
 // The landing screen is identity first, then the RSVP: who you are (greeting, or
 // a way back to an earlier RSVP), followed by the form and its submit bar.
 function identityView(g: GuestSummary | null): { content: HTMLElement[]; footer: HTMLElement } {
+  // A guest we don't recognise can look themselves up, right under the yarp / narp buttons.
   const form = buildRsvpForm({
     onSaved: (saved, first) => navigate(destinationAfterRsvp(saved, first)),
+    belowChoice: g ? undefined : lookupPanel(),
   });
 
   const lead = g ? interpolate(copy().landingReturning, { name: g.name }) : copy().landingNew;
   const hero = el("div", { class: "hero" }, [
     el("h1", {}, [copy().landingTitle]),
     el("p", { class: "lead" }, [lead]),
+    ...(g ? [el("p", { class: "not-you-row" }, [notYouLink()])] : []),
     el("p", { class: "muted" }, [config().event.tagline]),
   ]);
 
   const content: HTMLElement[] = [hero];
-  // A guest we don't recognise can look themselves up before filling anything in.
-  if (!g) content.push(lookupPanel());
+  // Anyone who hasn't answered yet can look at the venue before deciding.
+  if (canPreviewDetails(g)) content.push(previewDetailsLink());
   content.push(el("div", { class: "rsvp-form" }, form.fields));
   // Once an RSVP exists, the venue / farewell page is a link away.
   if (g && hasRsvped(g)) {
@@ -109,7 +112,7 @@ function lookupPanel(): HTMLElement {
   });
   const results = el("div", { class: "lookup-results", attrs: { "aria-live": "polite" } });
   const details = el("details", { class: "lookup" }, [
-    el("summary", {}, ["Edit my previous RSVP"]),
+    el("summary", {}, ["I RSVP'd before and want to make a change"]),
     el("div", { class: "lookup-body" }, [
       input,
       primaryButton("Find me", () => void runLookup(input.value, results)),
@@ -117,6 +120,12 @@ function lookupPanel(): HTMLElement {
     ]),
   ]);
   return details;
+}
+
+function previewDetailsLink(): HTMLElement {
+  const link = el("button", { class: "lookup-link", type: "button" }, ["Event Details"]);
+  on(link, "click", () => navigate("details"));
+  return el("div", { class: "lookup-link-row" }, [link]);
 }
 
 async function runLookup(name: string, results: HTMLElement): Promise<void> {

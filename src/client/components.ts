@@ -2,7 +2,7 @@ import { override } from "./api";
 import { el, on } from "./dom";
 import { navigate } from "./router";
 import { rotateVisitorToken } from "./storage";
-import { config, guest, setGuest, setOverriddenFrom, setSignals, setSoftMatch, signals } from "./store";
+import { config, setGuest, setOverriddenFrom, setSignals, setSoftMatch, signals } from "./store";
 
 // Shared building blocks used across screens.
 
@@ -18,17 +18,15 @@ async function handleNotYou(): Promise<void> {
   navigate("landing", { replace: true });
 }
 
-// The persistent header. The "Not you?" escape hatch is shown on every screen
-// once a guest is recognised, until they confirm.
+export function notYouLink(): HTMLButtonElement {
+  const notYou = el("button", { class: "link not-you", type: "button" }, ["Not you?"]);
+  on(notYou, "click", () => void handleNotYou());
+  return notYou;
+}
+
 export function header(): HTMLElement {
   const brand = el("div", { class: "brand" }, [config().event.title]);
-  const children: (Node | string)[] = [brand];
-  if (guest()) {
-    const notYou = el("button", { class: "link not-you", type: "button" }, ["Not you?"]);
-    on(notYou, "click", () => void handleNotYou());
-    children.push(notYou);
-  }
-  return el("header", { class: "app-header" }, children);
+  return el("header", { class: "app-header" }, [brand]);
 }
 
 export function card(children: (Node | string)[], className = ""): HTMLElement {

@@ -1,7 +1,8 @@
 // Generate an argon2id hash for the admin password.
 // Usage: bun run scripts/hash-admin-password.ts "your password"
 //    or: bun run scripts/hash-admin-password.ts   (prompts)
-// Put the printed value in ADMIN_PASSWORD_HASH (env / /etc/five-o.env).
+// Put the printed value in ADMIN_PASSWORD_HASH (compose .env). Every `$` is
+// printed doubled (`$$`); for a shell env var or systemd env file, use single `$`.
 
 const password = process.argv[2] ?? prompt("Admin password:") ?? "";
 
@@ -16,4 +17,5 @@ const hash = await Bun.password.hash(password, {
   timeCost: 2,
 });
 
-console.log("\nADMIN_PASSWORD_HASH=" + hash + "\n");
+// Docker Compose interpolates `$` in .env files, so each one must be doubled.
+console.log("\nADMIN_PASSWORD_HASH=" + hash.replaceAll("$", "$$$$") + "\n");

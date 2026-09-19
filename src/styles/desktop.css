@@ -31,9 +31,7 @@
     border-right: var(--outline-w) solid var(--border);
   }
   .app-header .brand { color: var(--text); }
-  .app-header .link { color: var(--accent); }
   .brand { font-size: var(--step-3); line-height: 1.05; }
-  .not-you { position: absolute; top: var(--space-6); right: var(--space-6); }
 
   .screen {
     grid-column: 2;
@@ -55,6 +53,9 @@
     border-top: none;
   }
   .action-bar .btn { flex: 0 1 auto; min-width: 12rem; }
+
+  .lookup summary,
+  .lookup-link { font-size: var(--step-1); }
 
   /* The instrument toggle only stretches full-width on mobile. */
   .toggle { width: auto; align-self: flex-start; }

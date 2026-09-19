@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MESSAGE_MAX_LENGTH } from "../shared/limits";
 
 // Shared request schemas. Deliberately config-free: this module may be bundled
 // into the client, so it must never import party.config (which holds secrets).
@@ -46,7 +47,7 @@ export const rsvpRequestSchema =deviceSignalsSchema.extend({
   kids: z.number().int().min(0).max(50),
   isMusician: z.boolean(),
   diet: dietSchema.optional(),
-  message: z.string().max(2000).optional(),
+  message: z.string().max(MESSAGE_MAX_LENGTH).optional(),
   overriddenFrom: z.string().min(1).max(64).optional(),
 });
 export type RsvpRequest = z.infer<typeof rsvpRequestSchema>;

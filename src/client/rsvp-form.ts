@@ -1,5 +1,6 @@
 import { NAME_TAKEN } from "../shared/error-codes";
 import { ApiError, isNameAvailable, rsvp, type Diet, type GuestSummary } from "./api";
+import { MESSAGE_MAX_LENGTH } from "../shared/limits";
 import { primaryButton } from "./components";
 import { el, on } from "./dom";
 import { hasRsvped } from "./flow";
@@ -69,7 +70,7 @@ function musicianToggle(state: FormState): HTMLElement {
   const btn = el(
     "button",
     { class: "toggle", type: "button", attrs: { role: "switch", "aria-checked": String(state.isMusician) } },
-    ["🎸 I’ll bring my axe!"],
+    ["🎸 I’ll bring instrument!"],
   );
   on(btn, "click", () => {
     state.isMusician = !state.isMusician;
@@ -93,6 +94,64 @@ function buildYesSection(state: FormState): HTMLElement {
   return el("div", { class: "reveal", attrs: { hidden: "" } }, children);
 }
 
+type CountTier = "ok" | "warm" | "hot" | "full";
+
+function countTier(used: number, max: number): CountTier {
+  if (used >= max) return "full";
+  if (used >= max * 0.9) return "hot";
+  if (used >= max * 0.75) return "warm";
+  return "ok";
+}
+
+const COUNT_TIER_HINT: Record<CountTier, string> = {
+  ok: "",
+  warm: "getting sweet",
+  hot: "nearly full",
+  full: "sugar overload!",
+};
+
+/**
+ * A live "used / max" readout with a fill bar under a textarea. The colour and a
+ * one-word hint escalate as the limit nears; the number bumps on each keystroke.
+ * Screen readers hear only tier changes (not every keystroke) via a polite status.
+ */
+function charCounter(box: HTMLTextAreaElement, max: number): { node: HTMLElement; update: () => void } {
+  const used = el("span", { class: "char-used" });
+  const hint = el("span", { class: "char-hint", attrs: { "aria-hidden": "true" } });
+  const fill = el("span", { class: "char-fill" });
+  const status = el("span", { class: "sr-only", attrs: { role: "status" } });
+  const node = el("div", { class: "char-count", attrs: { id: "message-count" } }, [
+    el("span", { class: "char-bar", attrs: { "aria-hidden": "true" } }, [fill]),
+    el("span", { class: "char-meta", attrs: { "aria-hidden": "true" } }, [
+      el("span", { class: "char-candy" }, ["🍬"]),
+      used,
+      ` / ${max}`,
+      hint,
+    ]),
+    status,
+  ]);
+
+  let lastTier: CountTier | null = null;
+  const update = (): void => {
+    const length = box.value.length;
+    const tier = countTier(length, max);
+    used.textContent = String(length);
+    hint.textContent = COUNT_TIER_HINT[tier] ? ` · ${COUNT_TIER_HINT[tier]}` : "";
+    fill.style.transform = `scaleX(${Math.min(1, length / max)})`;
+    node.dataset.tier = tier;
+    if (tier !== lastTier) {
+      status.textContent = tier === "ok" ? "" : `${Math.max(0, max - length)} characters left`;
+      lastTier = tier;
+    }
+    // Restart the bump animation on every change.
+    used.classList.remove("bump");
+    void used.offsetWidth;
+    used.classList.add("bump");
+  };
+  update();
+  return { node, update };
+}
+
 function buildNoSection(state: FormState): HTMLElement {
   const children: (Node | string)[] = [];
   if (config().form.decline.askMessage) {
@@ -100,10 +159,19 @@ function buildNoSection(state: FormState): HTMLElement {
       class: "input textarea",
       placeholder: "Gimmi some sugar babe!",
       value: state.message,
-      attrs: { "aria-label": "A note to the host", rows: "10", maxlength: "2000" },
+      attrs: {
+        "aria-label": "A note to the host",
+        "aria-describedby": "message-count",
+        rows: "10",
+        maxlength: String(MESSAGE_MAX_LENGTH),
+      },
     });
-    on(box, "input", () => (state.message = box.value));
-    children.push(box);
+    const counter = charCounter(box, MESSAGE_MAX_LENGTH);
+    on(box, "input", () => {
+      state.message = box.value;
+      counter.update();
+    });
+    children.push(box, counter.node);
   }
   return el("div", { class: "reveal", attrs: { hidden: "" } }, children);
 }
@@ -118,9 +186,11 @@ export interface RsvpForm {
 interface RsvpFormOptions {
   /** Called once the RSVP is saved. `first` is true when this guest had not answered before. */
   onSaved: (saved: GuestSummary, first: boolean) => void;
+  /** Optional element placed directly under the yes/no buttons. */
+  belowChoice?: HTMLElement;
 }
 
-export function buildRsvpForm({ onSaved }: RsvpFormOptions): RsvpForm {
+export function buildRsvpForm({ onSaved, belowChoice }: RsvpFormOptions): RsvpForm {
   const existing = guest();
   const state = initialState(existing);
   setFormIntent(null);
@@ -251,10 +321,11 @@ export function buildRsvpForm({ onSaved }: RsvpFormOptions): RsvpForm {
   }
 
   const fields = [
-    el("label", { class: "field" }, [nameInput]),
-    nameWarning,
+    // A recognised guest keeps the name they RSVP'd under: only new guests get to type one.
+    ...(existing ? [] : [el("label", { class: "field" }, [nameInput]), nameWarning]),
     el("h2", { class: "attend-question" }, [copy().attendingQuestion]),
     el("div", { class: "choice-grid" }, [yesCard, noCard]),
+    ...(belowChoice ? [belowChoice] : []),
     yesSection,
     noSection,
     error,

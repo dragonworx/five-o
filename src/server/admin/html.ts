@@ -8,7 +8,6 @@ const ADMIN_CSS = `
   :root { color-scheme: light dark; }
   * { box-sizing: border-box; }
   body { font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
-  h1 { font-size: 1.4rem; }
   .summary { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1rem; border: 1px solid #8884; border-radius: 12px; margin-bottom: 1.25rem; }
   .stat { display: flex; flex-direction: column; }
   .stat-value { font-size: 1.15rem; font-weight: 700; }
@@ -37,7 +36,6 @@ export function renderAdminShell(nonce: string): string {
   <style nonce="${nonce}">${ADMIN_CSS}</style>
 </head>
 <body>
-  <h1>${CONFIG.admin.realm} — ${CONFIG.event.title}</h1>
   <div id="summary"></div>
   <nav class="tabs" id="tabs"></nav>
   <div id="toolbar"></div>
