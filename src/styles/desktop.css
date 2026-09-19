@@ -3,8 +3,6 @@
    a stretched mobile one. */
 
 @media (min-width: 768px) {
-  :root { --type-base: 14px; }
-
   /* The mobile shell is capped at a narrow reading measure by #app in html.ts;
      on desktop the split-canvas layout takes the full viewport instead. */
   #app { max-width: none; padding: 0; margin: 0; }
@@ -28,10 +26,7 @@
     height: 100dvh;
     padding: var(--space-8) var(--space-7);
     color: var(--text);
-    background:
-      radial-gradient(70% 50% at 18% 12%, color-mix(in oklab, var(--support) 24%, transparent), transparent 62%),
-      radial-gradient(60% 55% at 95% 100%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 66%),
-      var(--surface-2);
+    background: var(--surface-2);
     border-right: var(--outline-w) solid var(--border);
   }
   .app-header .brand { color: var(--text); }

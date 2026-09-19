@@ -109,7 +109,7 @@ function lookupPanel(): HTMLElement {
   });
   const results = el("div", { class: "lookup-results", attrs: { "aria-live": "polite" } });
   const details = el("details", { class: "lookup" }, [
-    el("summary", {}, ["Opened this before? Find my RSVP"]),
+    el("summary", {}, ["Opened this before? Find/edit your previous RSVP"]),
     el("div", { class: "lookup-body" }, [
       input,
       primaryButton("Find me", () => void runLookup(input.value, results)),

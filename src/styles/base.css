@@ -1,36 +1,37 @@
-/* Base elements + shared components. Modern, compact, dark, monospace. UI state
-   changes (selection, expand, focus, hover, page swaps) are blended with CSS
-   transitions, keyframes and View Transition animations. */
+/* Base elements + shared components. Commodore 64: flat blue screen, hard-edged
+   blocks, one pixel typeface. UI state changes (selection, expand, focus, hover,
+   page swaps) are blended with CSS transitions, keyframes and View Transition
+   animations. */
 
 body {
   color: var(--text);
   background: var(--surface);
 }
 
-/* Subtle glow wash behind everything (fixed, non-interactive) */
+/* The C64's light-blue screen border: a fixed, click-through frame over the
+   viewport, so it never affects layout. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: var(--z-frame);
+  border: var(--frame) solid var(--support);
   background: var(--bg-wash);
-  background-attachment: fixed;
 }
 
-/* Faint film-grain overlay (theme.grain) */
+/* Faint CRT scanlines */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0.03;
   z-index: 1;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, color-mix(in oklab, black 16%, transparent) 2px 3px);
 }
 
-h1 { font-size: var(--step-3); font-weight: 700; letter-spacing: -0.02em; line-height: 1.08; text-wrap: balance; }
-h2 { font-size: var(--step-1); font-weight: 700; letter-spacing: -0.01em; }
+h1 { font-size: var(--step-3); font-weight: 700; line-height: 1.15; text-wrap: balance; color: var(--accent); }
+h2 { font-size: var(--step-1); font-weight: 700; }
 h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
 
 .lead { font-size: var(--step-1); color: var(--text); margin: 0 0 var(--space-5); }
@@ -52,13 +53,17 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   font-family: var(--font-display);
   font-weight: 700;
   font-size: var(--step-0);
-  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--text);
 }
 .brand::before {
-  content: "› ";
+  content: "> ";
   color: var(--accent);
+}
+.brand::after {
+  content: "█";
+  color: var(--accent);
+  margin-left: 0.25em;
 }
 .link {
   background: none;
@@ -116,7 +121,7 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   border-color: transparent;
   box-shadow: var(--shadow-pop-accent);
 }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: var(--glow-accent); }
+.btn-primary:hover { background: var(--paper); }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 .btn-ghost { background: color-mix(in oklab, var(--surface-raised) 60%, transparent); color: var(--text); }
 .btn-ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
@@ -179,7 +184,6 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   font: inherit;
   font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: -0.01em;
   font-size: var(--step-0);
   display: flex;
   align-items: center;
@@ -193,11 +197,11 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
 .choice-card.selected { background: var(--accent-tint); }
 .choice-yes.selected {
   border-color: var(--success);
-  box-shadow: 0 0 0 1px var(--success), 0 8px 24px color-mix(in oklab, var(--success) 26%, transparent);
+  box-shadow: 0 0 0 2px var(--success);
 }
 .choice-no.selected {
   border-color: var(--danger);
-  box-shadow: 0 0 0 1px var(--danger), 0 8px 24px color-mix(in oklab, var(--danger) 26%, transparent);
+  box-shadow: 0 0 0 2px var(--danger);
 }
 
 /* Steppers */
@@ -260,7 +264,6 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   background: var(--accent-soft);
   border-color: transparent;
   color: var(--ink);
-  box-shadow: 0 8px 24px color-mix(in oklab, var(--accent-soft) 30%, transparent);
 }
 
 /* Collapsible reveal */
@@ -314,6 +317,9 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
+@keyframes blink {
+  50% { opacity: 0; }
+}
 @keyframes vt-old {
   to { opacity: 0; transform: translateY(-4px); }
 }
@@ -352,6 +358,8 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .brand::after { animation: blink 1.06s steps(1) infinite; }
+
   .screen > * { animation: rise var(--dur-slow) var(--ease-out) both; }
   .screen > *:nth-child(2) { animation-delay: 0.04s; }
   .screen > *:nth-child(3) { animation-delay: 0.08s; }

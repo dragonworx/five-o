@@ -45,6 +45,9 @@ export interface FontSpec {
   stack: string;
   /** Variable-font weight range, e.g. "400 900" */
   weightRange: string;
+  /** Self-hosted font file, as a URL under public/ (e.g. "/fonts/x.woff2").
+   *  When set, the shell emits an @font-face for `family` and preloads the file. */
+  src?: string;
 }
 
 export interface Fonts {

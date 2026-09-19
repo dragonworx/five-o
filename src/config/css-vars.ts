@@ -39,6 +39,55 @@ function fontVars(theme: ThemeConfig): string[] {
   ];
 }
 
+const FONT_FORMATS: Record<string, { css: string; mime: string }> = {
+  woff2: { css: "woff2", mime: "font/woff2" },
+  woff: { css: "woff", mime: "font/woff" },
+  ttf: { css: "truetype", mime: "font/ttf" },
+  otf: { css: "opentype", mime: "font/otf" },
+};
+
+export interface FontFile {
+  family: string;
+  weightRange: string;
+  src: string;
+  mime: string;
+  format: string;
+}
+
+// The distinct self-hosted font files the theme asks for (display and body often
+// share one). Fonts without a `src` are system stacks and need no @font-face.
+export function fontFiles(theme: ThemeConfig): FontFile[] {
+  const files = new Map<string, FontFile>();
+  for (const spec of [theme.fonts.display, theme.fonts.body]) {
+    if (!spec.src || files.has(spec.src)) continue;
+    const ext = spec.src.slice(spec.src.lastIndexOf(".") + 1).toLowerCase();
+    const fmt = FONT_FORMATS[ext];
+    if (!fmt) throw new Error(`Unsupported font file type ".${ext}" for ${spec.src}`);
+    files.set(spec.src, {
+      family: spec.family,
+      weightRange: spec.weightRange,
+      src: spec.src,
+      mime: fmt.mime,
+      format: fmt.css,
+    });
+  }
+  return [...files.values()];
+}
+
+export function buildFontFaces(theme: ThemeConfig): string {
+  return fontFiles(theme)
+    .map(
+      (f) => `@font-face {
+  font-family: "${f.family}";
+  src: url("${f.src}") format("${f.format}");
+  font-weight: ${f.weightRange};
+  font-style: normal;
+  font-display: swap;
+}`,
+    )
+    .join("\n");
+}
+
 function scaleAndMotionVars(theme: ThemeConfig): string[] {
   const t = theme.typeScale;
   const m = theme.motion;

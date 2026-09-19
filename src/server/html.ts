@@ -1,13 +1,13 @@
 import { CONFIG } from "../config/party.config";
-import { buildCssVariables } from "../config/css-vars";
+import { buildCssVariables, buildFontFaces, fontFiles } from "../config/css-vars";
 
-// The HTML shell: inlined CSS variables (from the config) + critical base CSS +
-// a nonce'd module bootstrap. Kept deliberately tiny; the client renders the
-// screens. `nonce` ties the inline <style> to the response CSP.
+// The HTML shell: inlined CSS variables and @font-face rules (from the config) +
+// critical base CSS + a nonce'd module bootstrap. Kept deliberately tiny; the
+// client renders the screens. `nonce` ties the inline <style> to the response CSP.
 
-// No web fonts are downloaded: the theme is set in the platform's monospace
-// typeface (see the mono stack in party.config.ts). Dark is the default so the
-// near-black canvas paints immediately, before the client script runs.
+// Dark is the default so the canvas paints immediately, before the client script
+// runs. `font-synthesis: none` stops the browser faking bold/italic: the theme's
+// pixel typeface has a single weight and smears when emboldened.
 const BASE_CSS = `
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
@@ -19,6 +19,7 @@ body {
   font-size: var(--type-base);
   line-height: 1.55;
   min-height: 100dvh;
+  font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -26,7 +27,6 @@ h1, h2, h3 {
   font-family: var(--font-display);
   font-weight: 700;
   line-height: 1.1;
-  letter-spacing: -0.01em;
   margin: 0 0 0.5em;
 }
 a { color: var(--accent); }
@@ -36,6 +36,10 @@ a { color: var(--accent); }
 
 export function renderShell(nonce: string): string {
   const cssVars = buildCssVariables(CONFIG.theme);
+  const fontFaces = buildFontFaces(CONFIG.theme);
+  const fontPreloads = fontFiles(CONFIG.theme)
+    .map((f) => `<link rel="preload" href="${f.src}" as="font" type="${f.mime}" crossorigin />`)
+    .join("\n  ");
   const title = CONFIG.event.title;
   return `<!doctype html>
 <html lang="en">
@@ -44,7 +48,9 @@ export function renderShell(nonce: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
   <title>${escapeHtml(title)}</title>
+  ${fontPreloads}
   <style nonce="${nonce}">
+${fontFaces}
 ${cssVars}
 ${BASE_CSS}
   </style>

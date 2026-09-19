@@ -2,10 +2,11 @@
    properties themselves are injected inline from the config (css-vars.ts); this
    file derives spacing, elevation, fluid type and surface tokens from them.
 
-   The theme is dark-first: the default `:root` tokens paint the near-black
-   canvas so there is no light flash before the client boots. A
-   `[data-theme="light"]` override remains for anyone who explicitly opts into a
-   light mode. Tints use oklab mixing so they stay perceptually even. */
+   The theme is a Commodore 64 screen: flat blue canvas, hard 2px light-blue
+   rules, no shadows or glows. The default `:root` tokens paint it so there is no
+   flash before the client boots. A `[data-theme="light"]` override remains for
+   anyone who explicitly opts into a light mode. Tints use oklab mixing so they
+   stay perceptually even. */
 
 :root {
   color-scheme: dark;
@@ -28,39 +29,36 @@
   --step-3: calc(var(--step-2) * var(--type-ratio));
   --step-4: calc(var(--step-3) * var(--type-ratio));
 
-  /* Semantic surface tokens — dark theme (default) */
+  /* Semantic surface tokens — the blue screen (default) */
   --surface: var(--paper-dark);
-  --surface-2: color-mix(in oklab, var(--paper-dark) 82%, var(--paper));
-  --surface-raised: color-mix(in oklab, var(--paper-dark) 90%, var(--paper));
+  --surface-2: color-mix(in oklab, var(--paper-dark) 78%, black);
+  --surface-raised: var(--paper-dark);
   --text: var(--paper);
-  --text-muted: color-mix(in oklab, var(--paper) 58%, var(--paper-dark));
-  --border: color-mix(in oklab, var(--paper) 12%, transparent);
-  --border-strong: color-mix(in oklab, var(--paper) 22%, transparent);
-  --accent-tint: color-mix(in oklab, var(--accent) 18%, var(--paper-dark));
+  --text-muted: color-mix(in oklab, var(--paper) 62%, var(--paper-dark));
+  --border: var(--support);
+  --border-strong: color-mix(in oklab, var(--support) 55%, var(--paper));
+  --accent-tint: color-mix(in oklab, var(--support) 55%, var(--paper-dark));
   --focus-ring: var(--accent);
 
-  /* Modern elevation — hairline borders + soft, low shadows (no hard offset
-     "stickers"). The --shadow-pop* names are kept so component rules don't need
-     rewiring; they now resolve to subtle depth. */
+  /* Flat, like the hardware: rules instead of depth. The --shadow-* names are
+     kept so component rules don't need rewiring; they now resolve to nothing,
+     and the "glow" is a solid 2px ring. */
   --outline: var(--border);
-  --outline-w: 1px;
-  --shadow-1: 0 1px 2px color-mix(in oklab, black 55%, transparent);
-  --shadow-2: 0 12px 34px color-mix(in oklab, black 60%, transparent);
-  --shadow-pop: 0 10px 30px color-mix(in oklab, black 55%, transparent);
-  --shadow-pop-sm: 0 4px 14px color-mix(in oklab, black 45%, transparent);
-  --shadow-pop-accent: 0 8px 26px color-mix(in oklab, var(--accent) 26%, transparent);
-  --glow-accent:
-    0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent),
-    0 8px 26px color-mix(in oklab, var(--accent) 28%, transparent);
+  --outline-w: 2px;
+  --frame: 10px; /* the light-blue screen border (body::before in base.css) */
+  --shadow-1: none;
+  --shadow-2: none;
+  --shadow-pop: none;
+  --shadow-pop-sm: none;
+  --shadow-pop-accent: none;
+  --glow-accent: 0 0 0 2px var(--accent);
 
-  /* Restrained background wash — two low-opacity glows on the near-black canvas */
-  --bg-wash:
-    radial-gradient(60% 50% at 12% -5%, color-mix(in oklab, var(--support) 22%, transparent), transparent 70%),
-    radial-gradient(52% 45% at 100% 0%, color-mix(in oklab, var(--accent) 15%, transparent), transparent 72%);
+  --bg-wash: none;
 
   --measure: 34rem;
   --touch: 48px;
   --z-bar: 40;
+  --z-frame: 50;
   --z-confetti: 60;
   --z-test-badge: 70;
 

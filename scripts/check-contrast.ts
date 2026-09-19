@@ -26,7 +26,6 @@ function contrast(a: string, b: string): number {
 }
 
 const p = CONFIG.theme.palette;
-const WHITE = "#FFFFFF";
 
 interface Pair {
   name: string;
@@ -38,9 +37,11 @@ interface Pair {
 const pairs: Pair[] = [
   { name: "body text on paper (light)", fg: p.ink, bg: p.paper, hard: true },
   { name: "body text on paper (dark)", fg: p.paper, bg: p.paperDark, hard: true },
-  { name: "toggle-on label (ink on gold)", fg: p.ink, bg: p.accentSoft, hard: true },
-  { name: "primary button label (white on accent)", fg: WHITE, bg: p.accent, hard: false },
-  { name: "muted text on paper", fg: p.muted, bg: p.paper, hard: false },
+  { name: "links / headings / focus (accent on dark)", fg: p.accent, bg: p.paperDark, hard: true },
+  { name: "error text (danger on dark)", fg: p.danger, bg: p.paperDark, hard: true },
+  { name: "toggle-on label (ink on accentSoft)", fg: p.ink, bg: p.accentSoft, hard: true },
+  { name: "primary button label (ink on accent)", fg: p.ink, bg: p.accent, hard: true },
+  { name: "muted text on dark", fg: p.muted, bg: p.paperDark, hard: false },
 ];
 
 let failures = 0;

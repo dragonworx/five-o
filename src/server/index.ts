@@ -68,6 +68,7 @@ const CONTENT_TYPES: Record<string, string> = {
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".woff2": "font/woff2",
+  ".ttf": "font/ttf",
   ".ico": "image/x-icon",
 };
 
@@ -82,7 +83,7 @@ async function serveStatic(pathname: string): Promise<Response> {
   if (!(await file.exists())) {
     return new Response("Not found", { status: 404 });
   }
-  const ext = filePath.slice(filePath.lastIndexOf("."));
+  const ext = filePath.slice(filePath.lastIndexOf(".")).toLowerCase();
   const type = CONTENT_TYPES[ext] ?? "application/octet-stream";
   const immutable = pathname.startsWith("/dist/");
   return new Response(file, {
