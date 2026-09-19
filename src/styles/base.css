@@ -139,6 +139,44 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
 }
 .btn-round:hover { border-color: var(--accent); color: var(--accent); }
 
+/* Hero CTA (slide show, and the RSVP button once a name is entered) — a C64
+   sprite: white face, stepped hard-edge shadow in two palette colours, a CSS play
+   triangle and a scanline that sweeps across. Presses "into" its shadow. The
+   margin leaves room for the 8px shadow so it never clips. */
+.btn-hero {
+  position: relative;
+  overflow: hidden;
+  margin: 0 8px 8px 0;
+  min-height: calc(var(--touch) + var(--space-2));
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--paper);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  box-shadow: 4px 4px 0 var(--danger), 8px 8px 0 var(--success);
+}
+.btn-hero:hover { background: var(--paper); color: var(--ink); border-color: var(--paper); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--danger), 12px 12px 0 var(--success); }
+.btn-hero:active { transform: translate(6px, 6px); box-shadow: 0 0 0 var(--danger), 2px 2px 0 var(--success); }
+.btn-hero:disabled { cursor: default; transform: none; box-shadow: 4px 4px 0 var(--danger), 8px 8px 0 var(--success); }
+.btn-hero:disabled::after { display: none; }
+.btn-hero:focus-visible { outline: var(--outline-w) solid var(--accent); outline-offset: 4px; }
+.hero-play {
+  display: none; /* only shown inside a .btn-hero (the RSVP button toggles that class) */
+  width: 0.8em;
+  height: 0.9em;
+  background: currentColor;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+.btn-hero .hero-play { display: block; }
+.btn-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -30%;
+  width: 24%;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--accent) 45%, transparent), transparent);
+  pointer-events: none;
+}
+
 /* Inputs */
 .field { display: block; margin-bottom: var(--space-4); }
 .field-label {
@@ -161,6 +199,7 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   border: var(--outline-w) solid var(--border);
   border-radius: var(--radius-md);
   transition: border-color var(--dur-mid) var(--ease-out), box-shadow var(--dur-mid) var(--ease-out);
+  text-align: center;
 }
 .input::placeholder { color: color-mix(in oklab, var(--text-muted) 80%, transparent); }
 .input:focus { outline: none; border-color: var(--accent); box-shadow: var(--glow-accent); }
@@ -370,8 +409,9 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
 .confetti-note {
   position: fixed;
   z-index: var(--z-confetti);
-  font-size: 1.2rem;
-  color: var(--accent-soft);
+  line-height: 1;
+  /* Colour is set per note in motion.ts; the double glow keeps every glyph bright on the blue screen. */
+  text-shadow: 0 0 6px currentColor, 0 0 18px currentColor, 0 0 32px var(--accent);
   pointer-events: none;
   will-change: transform, opacity;
 }
@@ -381,6 +421,8 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
+@keyframes hero-sweep { from { left: -30%; } to { left: 110%; } }
+@keyframes hero-pulse { 50% { transform: translateX(3px); } }
 @keyframes blink {
   50% { opacity: 0; }
 }
@@ -432,6 +474,9 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
 
 @media (prefers-reduced-motion: no-preference) {
   .brand::after { animation: blink 1.06s steps(1) infinite; }
+
+  .btn-hero::after { animation: hero-sweep 2.4s steps(14) infinite; }
+  .btn-hero .hero-play { animation: hero-pulse 1.06s steps(2) infinite; }
 
   .char-used.bump { animation: count-bump var(--dur-fast) var(--ease-out); }
   .char-count[data-tier="full"] .char-candy { animation: candy-wiggle 0.5s var(--ease-out); }

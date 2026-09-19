@@ -86,7 +86,7 @@ The image copies in `src/`, `public/` and `scripts/` at build time, so these all
 | --- | --- |
 | Event details, copy, form, theme | `src/config/*.ts` (one file per section; `party.config.ts` only assembles them) |
 | Slide captions and order | `src/config/slides.ts` |
-| Slide images | `public/img/slides/`, then `bun run slides` (normalises the JPEGs and writes the `.webp` copies the server prefers) |
+| Slide images | `public/img/slides/`, then `bun run slides` (converts every JPEG source to a cropped, resized `.webp` the server prefers; the JPEGs are left untouched) |
 | CSS | `src/styles/*.css` |
 
 None of it is env-driven. The RSVP database is in the `/data` volume, so a refresh leaves it untouched.

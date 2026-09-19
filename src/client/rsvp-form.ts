@@ -256,7 +256,12 @@ export function buildRsvpForm({ onSaved, belowChoice }: RsvpFormOptions): RsvpFo
   const noCard = choiceCard(copy().attendingNo, "no");
 
   const answered = existing !== null && hasRsvped(existing);
-  const submit = primaryButton(answered ? "Update RSVP" : "Send RSVP", () => void doSubmit());
+  const submit = primaryButton(answered ? "Update RSVP" : "Send RSVP", () => {
+    confettiBurst(submit);
+    void doSubmit();
+  });
+  // The play triangle only shows once the button turns into the hero CTA (see updateSubmit).
+  submit.prepend(el("span", { class: "hero-play", attrs: { "aria-hidden": "true" } }));
 
   const chooseAttending = (value: boolean): void => {
     state.attending = value;
@@ -274,6 +279,8 @@ export function buildRsvpForm({ onSaved, belowChoice }: RsvpFormOptions): RsvpFo
   function updateSubmit(): void {
     const ready = state.name.trim().length > 0 && state.attending !== null && !nameTaken;
     submit.disabled = !ready;
+    // Once there is a usable name, the button gets the loud hero style so it isn't missed.
+    submit.classList.toggle("btn-hero", state.name.trim().length > 0 && !nameTaken);
   }
 
   async function doSubmit(): Promise<void> {

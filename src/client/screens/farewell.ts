@@ -1,4 +1,4 @@
-import { card, ghostButton, primaryButton, screen } from "../components";
+import { card, primaryButton, screen, slidesButton } from "../components";
 import { el, mount } from "../dom";
 import { springIn } from "../motion";
 import { navigate } from "../router";
@@ -14,7 +14,7 @@ export function render(root: HTMLElement): void {
     }),
   ];
   if (canWatchSlides) {
-    actions.push(ghostButton(copy().slidesCta, () => navigate("slides")));
+    actions.push(slidesButton(copy().slidesCta, () => navigate("slides")));
   }
 
   const content = [

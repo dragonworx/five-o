@@ -1,5 +1,5 @@
 import { formatEventWhen, toGoogleCalendarUrl, toIcsDataUrl } from "../calendar";
-import { actionBar, card, ghostButton, primaryButton, screen } from "../components";
+import { actionBar, card, ghostButton, primaryButton, screen, slidesButton } from "../components";
 import { el, mount } from "../dom";
 import { attendingCanSeeDetails, canPreviewDetails } from "../flow";
 import { springIn } from "../motion";
@@ -69,7 +69,7 @@ export function render(root: HTMLElement): void {
   children.push(
     el("div", { class: "stack cross-links" }, [
       ...(preview ? [] : [ghostButton("Edit my RSVP", () => navigate("landing"))]),
-      ghostButton(copy().slidesCta, () => navigate("slides")),
+      slidesButton(copy().slidesCta, () => navigate("slides")),
     ]),
   );
 

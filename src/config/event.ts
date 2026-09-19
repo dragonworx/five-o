@@ -7,7 +7,7 @@ import type { EventConfig } from "./config.types";
 const event: EventConfig = {
   hostName: "Ali",
   title: "LOAD \"ALI_50\",8,1 : RUN",
-  tagline: "Probably my last 50th...",
+  tagline: "It's probably my last 50th",
   venueName: "Kincumba Mountain Reserve",
   addressLines: ["Island View Dr", "Kincumber", "NSW 2251"],
   mapsUrl: "https://maps.app.goo.gl/fpjYhWbj6SnwvhAk6",

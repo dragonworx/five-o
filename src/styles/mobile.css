@@ -7,7 +7,7 @@
   flex-direction: column;
   max-width: var(--measure);
   margin: 0 auto;
-  padding: 0 var(--space-4) calc(var(--touch) + env(safe-area-inset-bottom) + var(--space-6));
+  padding: 0 var(--space-1) calc(var(--touch) + env(safe-area-inset-bottom) + var(--space-6));
   text-align: center;
 }
 

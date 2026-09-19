@@ -15,7 +15,7 @@ bun test tests/score.test.ts # one file
 bun test -t "decline"        # tests matching a name
 bun run typecheck            # tsc --noEmit (covers src, scripts, tests)
 bun run check:contrast       # WCAG AA check of the palette in party.config.ts; exits 1 on failure
-bun run slides               # ImageMagick: normalise public/img/slides to 896×1195 q78 + .webp siblings (--check = report only)
+bun run slides               # ImageMagick: convert each public/img/slides JPEG to a 896×1195 q78 .webp sibling (--check = report only)
 bun run hash-admin-password  # argon2id hash for ADMIN_PASSWORD_HASH
 bun run docker:refresh       # production: docker compose build && up -d (host Caddy fronts it; site block in deploy/Caddyfile)
 bun run docker:watch         # docker dev loop (bind-mounts src/ and public/, still needs .env)

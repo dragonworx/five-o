@@ -69,28 +69,45 @@ export function collapse(node: HTMLElement, open: boolean): void {
 }
 
 // Quaver burst when the musician toggle is switched on. Deterministic spread —
-// no PRNG needed for a cosmetic effect.
+// no PRNG needed for a cosmetic effect. Notes fan out symmetrically above the
+// toggle, in the brightest palette colours, at three sizes for depth.
+const NOTE_GLYPHS = ["♪", "♫", "♬", "♩"];
+const NOTE_COLOURS = ["var(--text)", "var(--accent)", "var(--success)"];
+const NOTE_SIZES_PX = [44, 58, 72];
+
 export function confettiBurst(origin: HTMLElement): void {
   if (prefersReducedMotion()) return;
   const rect = origin.getBoundingClientRect();
-  const notes = ["♪", "♫", "♬", "♩"];
-  const count = 12;
+  const count = 24;
+  const fan = (Math.PI * 2) / 3; // 120° cone, centred straight up
   for (let i = 0; i < count; i++) {
-    const angle = (i / count) * Math.PI - Math.PI / 2;
-    const spread = 120 + (i % 4) * 30;
-    const dx = Math.cos(angle) * spread;
-    const dy = -130 - (i % 5) * 26;
+    const angle = (i / (count - 1) - 0.5) * fan;
+    const reach = 190 + (i % 4) * 45;
+    const dx = Math.sin(angle) * reach;
+    const dy = -Math.cos(angle) * reach - (i % 5) * 20;
+    const size = NOTE_SIZES_PX[i % NOTE_SIZES_PX.length] ?? 44;
     const note = document.createElement("span");
-    note.textContent = notes[i % notes.length] ?? "♪";
+    note.textContent = NOTE_GLYPHS[i % NOTE_GLYPHS.length] ?? "♪";
     note.className = "confetti-note";
     note.style.left = `${rect.left + rect.width / 2}px`;
-    note.style.top = `${rect.top}px`;
+    note.style.top = `${rect.top + rect.height / 2}px`;
+    note.style.fontSize = `${size}px`;
+    note.style.color = NOTE_COLOURS[i % NOTE_COLOURS.length] ?? "var(--text)";
     document.body.append(note);
+    const spin = (i % 2 === 0 ? 1 : -1) * (25 + (i % 3) * 20);
     note
       .animate(
-        { transform: [`translate(0,0) rotate(0deg)`, `translate(${dx}px,${dy}px) rotate(${dx}deg)`], opacity: [1, 0] },
-        { duration: 1000, easing: EASE_OUT, fill: "forwards" },
+        [
+          { transform: "translate(-50%,-50%) scale(0.4) rotate(0deg)", opacity: 1, offset: 0 },
+          { transform: `translate(calc(-50% + ${dx * 0.55}px),calc(-50% + ${dy * 0.55}px)) scale(1.25) rotate(${spin / 2}deg)`, opacity: 1, offset: 0.4 },
+          { transform: `translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(1) rotate(${spin}deg)`, opacity: 0, offset: 1 },
+        ],
+        { duration: 1500, delay: (i % 6) * 25, easing: EASE_OUT, fill: "both" },
       )
       .finished.then(() => note.remove(), () => note.remove());
   }
+  origin.animate(
+    [{ transform: "scale(1)" }, { transform: "scale(1.08)", offset: 0.3 }, { transform: "scale(1)" }],
+    { duration: 380, easing: EASE_OUT },
+  );
 }
