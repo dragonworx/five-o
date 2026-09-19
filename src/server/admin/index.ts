@@ -25,7 +25,12 @@ async function buildAdmin(): Promise<string> {
   return out ? await out.text() : "";
 }
 
-const adminJs = await buildAdmin();
+let adminJs = await buildAdmin();
+
+// Used by live reload (`dev:watch`) to pick up admin client edits.
+export async function rebuildAdminBundle(): Promise<void> {
+  adminJs = await buildAdmin();
+}
 
 interface AdminGuest {
   id: string;

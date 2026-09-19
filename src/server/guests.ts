@@ -83,6 +83,12 @@ export function findByNormalisedName(normalised: string): GuestRow[] {
     .all(normalised);
 }
 
+// True when another active guest already has this full name. `exceptGuestId` is the
+// caller's own record, so re-saving an unchanged name is never a conflict.
+export function isNameTaken(name: string, exceptGuestId: string | null = null): boolean {
+  return findByNormalisedName(normaliseName(name)).some((g) => g.id !== exceptGuestId);
+}
+
 export function allActiveGuests(): GuestRow[] {
   return currentDb().query<GuestRow, []>("SELECT * FROM guest WHERE merged_into IS NULL").all();
 }

@@ -7,6 +7,7 @@
   "module": "src/server/index.ts",
   "scripts": {
     "dev": "bun --watch src/server/index.ts",
+    "dev:watch": "NODE_ENV=development LIVE_RELOAD=1 bun --watch src/server/index.ts",
     "start": "bun src/server/index.ts",
     "build": "bun run build:client",
     "build:client": "bun build ./src/client/main.ts --outdir ./public/dist --target browser --minify",

@@ -83,7 +83,7 @@ function renderSummary(s: Summary): HTMLElement {
     stat("Not coming", String(s.decliningCount)),
     stat("No answer", String(s.noAnswerCount)),
     stat("Responses", `${s.respondedCount} / ${s.guestCount}`),
-    stat("Diet", `🍖 ${s.omnivore} · 🥗 ${s.vegetarian} · 🌱 ${s.vegan}`),
+    stat("Diet", `${s.omnivore} · ${s.vegetarian} · ${s.vegan}`),
     stat("Musicians", `🎸 ${s.musicians}`),
   ]);
 }

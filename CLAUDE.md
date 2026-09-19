@@ -9,6 +9,7 @@ Five-O is a 50th-birthday RSVP app: Bun + `bun:sqlite`, no framework, no client 
 ```sh
 bun install
 bun run dev                  # bun --watch src/server/index.ts → http://localhost:3000
+bun run dev:watch            # dev + live reload: CSS hot-swaps, client/admin edits reload the tab, server restarts reload it too
 bun test                     # all tests
 bun test tests/score.test.ts # one file
 bun test -t "decline"        # tests matching a name
@@ -23,7 +24,7 @@ bun run docker:watch         # docker dev loop (bind-mounts src/ and public/, st
 - Dev needs no `.env`: missing `IP_PEPPER` / `COOKIE_SECRET` fall back to insecure defaults with a warning. With `NODE_ENV=production` (the Docker image) `src/server/env.ts` throws instead.
 - `?test=1` on the page URL runs that browser's API calls against a throwaway in-memory DB (`currentDb()` / `withTestDatabase` in `db.ts`, header set in `client/api.ts`, no env flag; the server echoes `x-test-mode` so the client shows its badge). Guest-facing data code must use `currentDb()`, not `db`; admin code keeps `db`.
 - To test `/admin` locally: `ADMIN_PASSWORD_HASH='<hash>' bun run dev` (single quotes; the hash contains `$`). In a compose `.env`, every `$` must be escaped as `$$`.
-- `bun --watch` does not reload on CSS edits (`src/server/styles.ts` reads the `.css` files once at boot). Restart the dev server after changing `src/styles/*`.
+- `bun --watch` does not reload on CSS or client edits (`src/server/styles.ts` reads the `.css` files at boot and the client bundle is built at boot). Use `bun run dev:watch` (`src/server/live-reload.ts`: `fs.watch` + an SSE channel at `/__dev/events` + a script at `/__dev/live.js` injected into both shells, only when `LIVE_RELOAD=1` and not production), or restart the dev server after changing `src/styles/*`, `src/client/*` or `src/admin/*`. `dev:watch` sets `NODE_ENV=development` on purpose: a local `.env` may say `production`, which Bun auto-loads.
 - `bun run build:client` writes to the gitignored `public/dist/`, which nothing serves in normal operation. The server bundles the client and admin at boot (`Bun.build` in `src/server/index.ts` and `src/server/admin/index.ts`), so it is not needed. The Dockerfile header comment saying otherwise is stale.
 - `tsconfig` is strict with `noUncheckedIndexedAccess` and `verbatimModuleSyntax` (use `import type`).
 

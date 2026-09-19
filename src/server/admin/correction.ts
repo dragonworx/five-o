@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { CONFIG } from "../../config/party.config";
-import { getGuest, updateGuestRsvp, type RsvpFields } from "../guests";
-import { badRequest, json, notFound, parseJson } from "../http";
+import { NAME_TAKEN } from "../../shared/error-codes";
+import { getGuest, isNameTaken, updateGuestRsvp, type RsvpFields } from "../guests";
+import { badRequest, conflict, json, notFound, parseJson } from "../http";
 import { dietSchema } from "../schemas";
 
 // Host-side correction of a single record. Full invariants are still enforced by
@@ -38,6 +39,9 @@ export async function handleCorrection(req: Request, guestId: string): Promise<R
     message,
   };
 
+  if (patch.name !== undefined && isNameTaken(patch.name, existing.id)) {
+    return conflict("Another guest already has that name", NAME_TAKEN);
+  }
   if (attending && merged.adults > CONFIG.form.maxAdults) return badRequest("Too many adults");
   if (attending && merged.adults < 1) return badRequest("An acceptance needs at least one adult");
 

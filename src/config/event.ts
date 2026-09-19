@@ -6,14 +6,14 @@ import type { EventConfig } from "./config.types";
 
 const event: EventConfig = {
   hostName: "Ali",
-  title: "Ali's big Five-O!",
-  tagline: "Half a century to make one party.",
+  title: "LOAD \"ALI_50\",8,1 : RUN",
+  tagline: "Probably my last 50th...",
   venueName: "Kincumba Mountain Reserve",
   addressLines: ["Island View Dr", "Kincumber", "NSW 2251"],
   mapsUrl: "https://maps.app.goo.gl/fpjYhWbj6SnwvhAk6",
   // Sydney is on daylight time (AEDT, +11:00) from 4 Oct 2026; the deadline
   // below is before the switch, so it stays on AEST (+10:00).
-  startsAt: "2026-10-10T14:30:00+11:00",
+  startsAt: "2026-10-10T13:30:00+11:00",
   endsAt: "2026-10-10T23:30:00+11:00",
   timezone: "Australia/Sydney",
   calendarTitle: "Ali's 50th",

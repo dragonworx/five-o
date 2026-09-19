@@ -7,7 +7,7 @@ const DB_PATH = `/tmp/five-o-test-${crypto.randomUUID()}.sqlite`;
 process.env.DB_PATH = DB_PATH;
 
 const { db, withTestDatabase } = await import("../src/server/db");
-const { createGuest, resolveGuest, updateGuestRsvp, markMerged } = await import("../src/server/guests");
+const { createGuest, isNameTaken, resolveGuest, updateGuestRsvp, markMerged } = await import("../src/server/guests");
 const { getSummary } = await import("../src/server/admin/queries");
 
 type Fields = Parameters<typeof createGuest>[0];
@@ -54,6 +54,42 @@ describe("CHECK constraints", () => {
   test("a valid acceptance and a valid decline insert cleanly", () => {
     expect(() => createGuest(accept("Ok", 1, 0, "omnivore"), null)).not.toThrow();
     expect(() => createGuest(decline("Nope"), null)).not.toThrow();
+  });
+});
+
+describe("unique full names", () => {
+  beforeEach(() => db.run("DELETE FROM guest"));
+
+  test("a name is taken regardless of case, accents or spacing", () => {
+    createGuest(accept("José  García", 1, 0, null), null);
+    expect(isNameTaken("jose garcia")).toBe(true);
+    expect(isNameTaken("  JOSÉ GARCÍA ")).toBe(true);
+    expect(isNameTaken("José García Jr")).toBe(false);
+  });
+
+  test("a guest's own name is not a conflict for them", () => {
+    const priya = createGuest(accept("Priya", 1, 0, null), null);
+    expect(isNameTaken("Priya", priya.id)).toBe(false);
+    expect(isNameTaken("Priya", "someone-else")).toBe(true);
+  });
+
+  test("the database refuses a duplicate name even if the app check is bypassed", () => {
+    createGuest(accept("Alex", 1, 0, null), null);
+    expect(() => createGuest(accept("alex", 1, 0, null), null)).toThrow();
+  });
+
+  test("renaming onto another guest's name is refused by the database", () => {
+    createGuest(accept("Alex", 1, 0, null), null);
+    const sam = createGuest(decline("Sam"), null);
+    expect(() => updateGuestRsvp(sam.id, decline("ALEX"))).toThrow();
+  });
+
+  test("a merged shell no longer holds its name", () => {
+    const shell = createGuest(decline("Sam"), null);
+    const survivor = createGuest(accept("Samuel", 1, 0, null), null);
+    markMerged(shell.id, survivor.id);
+    expect(isNameTaken("Sam")).toBe(false);
+    expect(() => createGuest(decline("Sam"), null)).not.toThrow();
   });
 });
 
@@ -112,8 +148,9 @@ describe("test mode database", () => {
   });
 
   test("the flow still works: a test guest is readable by later test requests", () => {
-    const guest = withTestDatabase(() => createGuest(accept("Ada", 2, 0, null), null));
-    expect(withTestDatabase(() => resolveGuest(guest.id))?.name).toBe("Ada");
+    // The in-memory database persists across tests, so use a name no earlier test took.
+    const guest = withTestDatabase(() => createGuest(accept("Ada Lovelace", 2, 0, null), null));
+    expect(withTestDatabase(() => resolveGuest(guest.id))?.name).toBe("Ada Lovelace");
   });
 
   test("the test database stays selected across awaits", async () => {

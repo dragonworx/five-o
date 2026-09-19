@@ -78,6 +78,17 @@ function noteTestMode(res: Response): void {
   if (res.headers.get(TEST_MODE_HEADER) === "1") showTestBadge();
 }
 
+/** A non-2xx API response, carrying the server's machine-readable `code` when it sent one. */
+export class ApiError extends Error {
+  constructor(
+    readonly path: string,
+    readonly status: number,
+    readonly code: string | null,
+  ) {
+    super(`${path} failed: ${status}`);
+  }
+}
+
 async function postJson<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(path, {
     method: "POST",
@@ -86,7 +97,10 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
   noteTestMode(res);
-  if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
+  if (!res.ok) {
+    const detail = (await res.json().catch(() => null)) as { code?: unknown } | null;
+    throw new ApiError(path, res.status, typeof detail?.code === "string" ? detail.code : null);
+  }
   return (await res.json()) as T;
 }
 
@@ -110,6 +124,11 @@ export function override(signals: DeviceSignals): Promise<OverrideResponse> {
 
 export function lookup(name: string): Promise<LookupResponse> {
   return postJson<LookupResponse>("/api/lookup", { name });
+}
+
+export async function isNameAvailable(name: string): Promise<boolean> {
+  const res = await postJson<{ available: boolean }>("/api/name-check", { name });
+  return res.available;
 }
 
 export function rsvp(payload: RsvpPayload): Promise<{ guest: GuestSummary }> {

@@ -14,8 +14,8 @@ const theme: ThemeConfig = {
     ink: "#352879", // C64 blue — text on the bright yellow/green surfaces
     paper: "#FFFFFF", // C64 white — primary text on the blue screen
     paperDark: "#352879", // C64 blue — the screen
-    accent: "#B8C76F", // C64 yellow — buttons, links, focus rings
-    accentSoft: "#9AD284", // C64 light green — toggle highlights, confetti
+    accent: "#8a7eff", // C64 yellow — buttons, links, focus rings
+    accentSoft: "#5c4ed7", // C64 light green — toggle highlights, confetti
     support: "#6C5EB5", // C64 light blue — the border/frame and rules
     success: "#9AD284", // C64 light green
     danger: "#FF7777", // C64 light red (the brighter VICE value; Pepto's is too dark on blue)

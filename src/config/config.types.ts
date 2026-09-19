@@ -83,6 +83,8 @@ export interface CopyConfig {
   /** May contain the "{name}" placeholder. */
   landingReturning: string;
   identityPrompt: string;
+  /** Shown under the name field when another guest already has that full name. */
+  nameTaken: string;
   attendingQuestion: string;
   attendingYes: string;
   attendingNo: string;

@@ -8,7 +8,7 @@ import {
   handleMe,
   handleOverride,
 } from "./identify";
-import { handleRsvp, handleSlidesComplete } from "./rsvp";
+import { handleNameCheck, handleRsvp, handleSlidesComplete } from "./rsvp";
 
 type Handler = (req: Request, ctx: ApiContext) => Response | Promise<Response>;
 
@@ -28,6 +28,7 @@ const ROUTES: Record<string, Partial<Record<string, Route>>> = {
   "/api/claim": { POST: { handler: handleClaim, perIp: 20 } },
   "/api/override": { POST: { handler: (req) => handleOverride(req), perIp: 20 } },
   "/api/lookup": { POST: { handler: handleLookup, perIp: 8 } }, // name guessing
+  "/api/name-check": { POST: { handler: (req) => handleNameCheck(req), perIp: 40 } }, // fires as the guest types
   "/api/rsvp": { POST: { handler: handleRsvp, perIp: 20 } },
   "/api/slides-complete": { POST: { handler: (req) => handleSlidesComplete(req), perIp: 30 } },
   "/api/me": {

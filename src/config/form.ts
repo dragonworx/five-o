@@ -10,7 +10,7 @@ const form: FormConfig = {
   maxKids: 8,
   dietOptions: [
     { value: "omnivore", label: "Omnivore", emoji: "🍖" },
-    { value: "vegetarian", label: "Vegetarian", emoji: "🥗" },
+    { value: "vegetarian", label: "Vego", emoji: "🥗" },
     { value: "vegan", label: "Vegan", emoji: "🌱" },
   ],
   askMusician: true,

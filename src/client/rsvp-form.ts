@@ -1,4 +1,5 @@
-import { rsvp, type Diet, type GuestSummary } from "./api";
+import { NAME_TAKEN } from "../shared/error-codes";
+import { ApiError, isNameAvailable, rsvp, type Diet, type GuestSummary } from "./api";
 import { primaryButton } from "./components";
 import { el, on } from "./dom";
 import { hasRsvped } from "./flow";
@@ -52,7 +53,7 @@ function dietChips(state: FormState): HTMLElement {
     const chip = el(
       "button",
       { class: "chip", type: "button", attrs: { role: "radio", "aria-checked": String(state.diet === option.value) } },
-      [`${option.emoji} ${option.label}`],
+      [`${option.label}`],
     );
     on(chip, "click", () => {
       state.diet = option.value;
@@ -68,7 +69,7 @@ function musicianToggle(state: FormState): HTMLElement {
   const btn = el(
     "button",
     { class: "toggle", type: "button", attrs: { role: "switch", "aria-checked": String(state.isMusician) } },
-    ["🎸 I’ll bring my instrument!"],
+    ["🎸 I’ll bring my axe!"],
   );
   on(btn, "click", () => {
     state.isMusician = !state.isMusician;
@@ -82,10 +83,10 @@ function musicianToggle(state: FormState): HTMLElement {
 
 function buildYesSection(state: FormState): HTMLElement {
   const children: (Node | string)[] = [
-    el("h3", {}, ["How many are coming?"]),
+    // el("h3", {}, ["How many are coming?"]),
     stepper("Adults", state.adults, 1, config().form.maxAdults, (v) => (state.adults = v)),
     stepper("Kids", state.kids, 0, config().form.maxKids, (v) => (state.kids = v)),
-    el("h3", {}, ["Anything else?"]),
+    // el("h3", {}, ["Anything else?"]),
     dietChips(state),
   ];
   if (config().form.askMusician) children.push(musicianToggle(state));
@@ -97,9 +98,9 @@ function buildNoSection(state: FormState): HTMLElement {
   if (config().form.decline.askMessage) {
     const box = el("textarea", {
       class: "input textarea",
-      placeholder: "Gimmi some sugar babe! (optional)",
+      placeholder: "Gimmi some sugar babe!",
       value: state.message,
-      attrs: { "aria-label": "A note to the host", rows: "3", maxlength: "2000" },
+      attrs: { "aria-label": "A note to the host", rows: "10", maxlength: "2000" },
     });
     on(box, "input", () => (state.message = box.value));
     children.push(box);
@@ -128,13 +129,54 @@ export function buildRsvpForm({ onSaved }: RsvpFormOptions): RsvpForm {
     class: "input",
     type: "text",
     value: state.name,
-    placeholder: "Your real full name",
-    attrs: { "aria-label": "Your real full name", autocomplete: "name", required: "true" },
+    placeholder: "Your full name",
+    attrs: {
+      "aria-label": "Your full name",
+      autocomplete: "name",
+      required: "true",
+      "aria-describedby": "name-error",
+    },
   });
+  // Full names are unique per guest: a taken name shows a warning and blocks submit.
+  const nameWarning = el("p", { class: "field-error", attrs: { id: "name-error", role: "alert" } });
+  let nameTaken = false;
+  let nameCheckTimer: number | undefined;
+  let nameCheckSeq = 0;
+
+  function setNameTaken(taken: boolean): void {
+    nameTaken = taken;
+    nameWarning.textContent = taken ? copy().nameTaken : "";
+    if (taken) nameInput.setAttribute("aria-invalid", "true");
+    else nameInput.removeAttribute("aria-invalid");
+    updateSubmit();
+  }
+
+  // Debounced while typing, immediate on blur. Only the latest request may update
+  // the warning. A failed check is ignored: the server re-validates on submit.
+  function checkName(delayMs: number): void {
+    window.clearTimeout(nameCheckTimer);
+    const name = state.name.trim();
+    const seq = ++nameCheckSeq;
+    if (!name) {
+      setNameTaken(false);
+      return;
+    }
+    nameCheckTimer = window.setTimeout(() => {
+      isNameAvailable(name).then(
+        (available) => {
+          if (seq === nameCheckSeq) setNameTaken(!available);
+        },
+        () => undefined,
+      );
+    }, delayMs);
+  }
+
   on(nameInput, "input", () => {
     state.name = nameInput.value;
     updateSubmit();
+    checkName(400);
   });
+  on(nameInput, "blur", () => checkName(0));
 
   const yesSection = buildYesSection(state);
   const noSection = buildNoSection(state);
@@ -160,7 +202,7 @@ export function buildRsvpForm({ onSaved }: RsvpFormOptions): RsvpForm {
   on(noCard, "click", () => chooseAttending(false));
 
   function updateSubmit(): void {
-    const ready = state.name.trim().length > 0 && state.attending !== null;
+    const ready = state.name.trim().length > 0 && state.attending !== null && !nameTaken;
     submit.disabled = !ready;
   }
 
@@ -187,7 +229,12 @@ export function buildRsvpForm({ onSaved }: RsvpFormOptions): RsvpForm {
       setGuest(res.guest);
       setOverriddenFrom(null);
       onSaved(res.guest, !answered);
-    } catch {
+    } catch (err) {
+      if (err instanceof ApiError && err.code === NAME_TAKEN) {
+        setNameTaken(true); // also disables submit until the name changes
+        nameInput.focus();
+        return;
+      }
       error.textContent = "Something went wrong. Please try again.";
       submit.disabled = false;
     }
@@ -204,7 +251,8 @@ export function buildRsvpForm({ onSaved }: RsvpFormOptions): RsvpForm {
   }
 
   const fields = [
-    el("label", { class: "field" }, [el("span", { class: "field-label" }, ["Your real full name"]), nameInput]),
+    el("label", { class: "field" }, [nameInput]),
+    nameWarning,
     el("h2", { class: "attend-question" }, [copy().attendingQuestion]),
     el("div", { class: "choice-grid" }, [yesCard, noCard]),
     yesSection,

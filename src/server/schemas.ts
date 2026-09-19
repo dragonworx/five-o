@@ -34,7 +34,12 @@ export const lookupRequestSchema = z.object({
 });
 export type LookupRequest = z.infer<typeof lookupRequestSchema>;
 
-export const rsvpRequestSchema = deviceSignalsSchema.extend({
+export const nameCheckRequestSchema = z.object({
+  name: z.string().min(1).max(120),
+});
+export type NameCheckRequest = z.infer<typeof nameCheckRequestSchema>;
+
+export const rsvpRequestSchema =deviceSignalsSchema.extend({
   name: z.string().min(1).max(120),
   attending: z.boolean(),
   adults: z.number().int().min(0).max(50),

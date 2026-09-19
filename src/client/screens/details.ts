@@ -57,7 +57,7 @@ export function render(root: HTMLElement): void {
 
   const children: (Node | string)[] = [
     el("h1", {}, [interpolate(copy().detailsIntro, { name: g.name })]),
-    el("p", { class: "lead" }, [event.title]),
+    // el("p", { class: "lead" }, [event.title]),
     card([
       addressBlock(),
       mapLink,

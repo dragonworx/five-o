@@ -5,8 +5,9 @@ import { renderShell } from "./html";
 import { db, withTestDatabase } from "./db"; // opens the database and runs migrations at boot
 import { getClientIp, getUserAgent } from "./http";
 import { dispatchApi } from "./routes/api";
-import { dispatchAdmin } from "./admin";
-import { APP_CSS } from "./styles";
+import { dispatchAdmin, rebuildAdminBundle } from "./admin";
+import { readAppCss, STYLES_DIR } from "./styles";
+import { handleLiveReload, watchSources } from "./live-reload";
 import { TEST_MODE_HEADER } from "../shared/test-mode";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -18,7 +19,8 @@ import { TEST_MODE_HEADER } from "../shared/test-mode";
 const PUBLIC_DIR = join(import.meta.dir, "..", "..", "public");
 const IS_PROD = process.env.NODE_ENV === "production";
 
-// Build the client bundle once at boot; --watch rebuilds on change in dev.
+// Build the client bundle at boot; --watch restarts on server changes, and
+// live-reload.ts rebuilds it (and the CSS) on client edits in `dev:watch`.
 async function buildClient(): Promise<string> {
   const result = await Bun.build({
     entrypoints: [join(import.meta.dir, "..", "client", "main.ts")],
@@ -35,16 +37,30 @@ async function buildClient(): Promise<string> {
   return out ? await out.text() : "";
 }
 
-const clientJs = await buildClient();
-
 // The shell (no-store) links the bundle and stylesheet by content hash, so the
 // browser caches them forever and a deploy with new content changes the URL.
-const CLIENT_VERSION = Bun.hash(clientJs).toString(36);
-const CSS_VERSION = Bun.hash(APP_CSS).toString(36);
-const SHELL_ASSETS = {
-  script: `/client.js?v=${CLIENT_VERSION}`,
-  stylesheet: `/app.css?v=${CSS_VERSION}`,
-};
+let clientJs = "";
+let clientVersion = "";
+let appCss = "";
+let cssVersion = "";
+
+async function loadClient(): Promise<void> {
+  clientJs = await buildClient();
+  clientVersion = Bun.hash(clientJs).toString(36);
+}
+
+function loadCss(): void {
+  appCss = readAppCss();
+  cssVersion = Bun.hash(appCss).toString(36);
+}
+
+await loadClient();
+loadCss();
+
+const shellAssets = () => ({
+  script: `/client.js?v=${clientVersion}`,
+  stylesheet: `/app.css?v=${cssVersion}`,
+});
 
 // Immutable only when the request names the current version; a stale or missing
 // ?v= (an old tab after a deploy) must not pin whatever is served now.
@@ -136,15 +152,15 @@ const server = Bun.serve({
   routes: {
     "/": (req: Request) => {
       const nonce = crypto.randomUUID().replaceAll("-", "");
-      return new Response(renderShell(nonce, SHELL_ASSETS), {
+      return new Response(renderShell(nonce, shellAssets()), {
         headers: noStore({ "Content-Type": "text/html; charset=utf-8", ...securityHeaders(nonce) }),
       });
     },
 
     "/client.js": (req: Request) =>
-      versionedAsset(req, clientJs, "text/javascript; charset=utf-8", CLIENT_VERSION),
+      versionedAsset(req, clientJs, "text/javascript; charset=utf-8", clientVersion),
 
-    "/app.css": (req: Request) => versionedAsset(req, APP_CSS, "text/css; charset=utf-8", CSS_VERSION),
+    "/app.css": (req: Request) => versionedAsset(req, appCss, "text/css; charset=utf-8", cssVersion),
 
     "/api/config": () =>
       Response.json(toPublicConfig(CONFIG), { headers: noStore() }),
@@ -159,6 +175,9 @@ const server = Bun.serve({
   // Fallback: dynamic API routes, then static assets from /public.
   async fetch(req: Request, server): Promise<Response> {
     const url = new URL(req.url);
+
+    const live = handleLiveReload(req, url.pathname, server);
+    if (live) return live;
 
     if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) {
       const ctx = { ip: getClientIp(req, server), ua: getUserAgent(req) };
@@ -185,5 +204,30 @@ const server = Bun.serve({
     return serveStatic(req, url.pathname);
   },
 });
+
+const SRC_DIR = join(import.meta.dir, "..");
+watchSources([
+  {
+    dirs: [STYLES_DIR],
+    rebuild: () => {
+      loadCss();
+      return { type: "css", version: cssVersion };
+    },
+  },
+  {
+    dirs: [join(SRC_DIR, "client"), join(SRC_DIR, "shared")],
+    rebuild: async () => {
+      await loadClient();
+      return { type: "reload" };
+    },
+  },
+  {
+    dirs: [join(SRC_DIR, "admin")],
+    rebuild: async () => {
+      await rebuildAdminBundle();
+      return { type: "reload" };
+    },
+  },
+]);
 
 console.log(`Five-O running at http://localhost:${server.port}`);

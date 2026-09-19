@@ -1,5 +1,6 @@
 import { CONFIG } from "../config/party.config";
 import { buildCssVariables, buildFontFaces, fontFiles } from "../config/css-vars";
+import { liveReloadTag } from "./live-reload";
 
 // The HTML shell: inlined CSS variables and @font-face rules (from the config) +
 // critical base CSS + a nonce'd module bootstrap. Kept deliberately tiny; the
@@ -66,6 +67,7 @@ ${BASE_CSS}
     <noscript>This RSVP needs JavaScript enabled.</noscript>
   </main>
   <script type="module" src="${assets.script}" nonce="${nonce}"></script>
+  ${liveReloadTag()}
 </body>
 </html>`;
 }

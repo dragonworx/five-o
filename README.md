@@ -14,7 +14,7 @@ The server bundles the client and admin JS itself at boot, so there is no separa
 | `IP_PEPPER`, `COOKIE_SECRET` | insecure built-in defaults (warns) | **required**, server refuses to start without them |
 | `ADMIN_PASSWORD_HASH` | optional; without it admin login won't work (config has a placeholder hash) | **required** to use `/admin` |
 | DB / backups | `./data/five-o.sqlite`, `./backups` | `./data` on host, mounted at `/data` |
-| Reload | `--watch` restarts on any change | rebuild image (or `docker:watch`, below) |
+| Reload | `--watch` restarts on server changes; `dev:watch` also live-reloads the browser | rebuild image (or `docker:watch`, below) |
 | URL | http://localhost:3000 | http://127.0.0.1:3000, served publicly by the host's Caddy |
 
 Health check: `/healthz`. Admin: `/admin`.
@@ -33,6 +33,16 @@ ADMIN_PASSWORD_HASH='<hash>' bun run dev
 ```
 
 Get a hash with `bun run hash-admin-password`.
+
+### Live reload
+
+`bun run dev:watch` is `dev` plus browser refresh, for editing without Docker:
+
+- **Stylesheets** (`src/styles/*`): re-read and hot-swapped in the open tab, no reload.
+- **Client and admin** (`src/client`, `src/shared`, `src/admin`): the bundle is rebuilt and the tab reloads.
+- **Server and config** (`src/server`, `src/config`): `bun --watch` restarts the process and the tab reloads once it is back.
+
+It forces `NODE_ENV=development`, so a `.env` left over from Docker (`NODE_ENV=production`) doesn't switch the dev server into production mode. `public/` assets (images, fonts) aren't watched; refresh by hand. Nothing is injected outside this mode.
 
 ### Test mode
 

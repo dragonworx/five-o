@@ -104,12 +104,12 @@ function lookupPanel(): HTMLElement {
   const input = el("input", {
     class: "input",
     type: "text",
-    placeholder: "Your real full name",
-    attrs: { "aria-label": "Your real full name", autocomplete: "name" },
+    placeholder: "Your full name",
+    attrs: { "aria-label": "Your full name", autocomplete: "name" },
   });
   const results = el("div", { class: "lookup-results", attrs: { "aria-live": "polite" } });
   const details = el("details", { class: "lookup" }, [
-    el("summary", {}, ["Opened this before? Find/edit your previous RSVP"]),
+    el("summary", {}, ["Edit my previous RSVP"]),
     el("div", { class: "lookup-body" }, [
       input,
       primaryButton("Find me", () => void runLookup(input.value, results)),

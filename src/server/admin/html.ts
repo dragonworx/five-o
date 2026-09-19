@@ -1,4 +1,5 @@
 import { CONFIG } from "../../config/party.config";
+import { liveReloadTag } from "../live-reload";
 
 // The admin console shell: containers the bundled admin client fills in. Inline
 // styles are nonce'd to satisfy the admin CSP; the script is external (/admin/app.js).
@@ -43,6 +44,7 @@ export function renderAdminShell(nonce: string): string {
   <div id="list"></div>
   <div id="danger"></div>
   <script type="module" src="/admin/app.js" nonce="${nonce}"></script>
+  ${liveReloadTag()}
 </body>
 </html>`;
 }

@@ -6,17 +6,18 @@ import type { CopyConfig } from "./config.types";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const copy: CopyConfig = {
-  landingTitle: "Ali’s Big Five O",
-  landingNew: "You’re invited.",
+  landingTitle: "Ali’s Big Five 0!",
+  landingNew: "Hope to see you!",
   landingReturning: "Welcome back, {name}.",
   identityPrompt: "Is this still you?",
+  nameTaken: "That name is already on the guest list.",
   attendingQuestion: "Can you make it?",
-  attendingYes: "Wouldn’t miss it! 🥳",
-  attendingNo: "Sorry, can’t make it 🥲",
-  declineThanks: "Gutted you can’t make it. Have a drink on me anyway.",
-  slidesCta: "Ali's Life Slideshow!",
+  attendingYes: "Yarp! 🥳",
+  attendingNo: "Narp 🥲",
+  declineThanks: "All good my friend, catch you soon!",
+  slidesCta: "This is Ali's Life...",
   slidesIntro: "Fifty years in {count} pictures.",
-  detailsIntro: "See you there, {name}!",
+  detailsIntro: "See you there {name}!",
   musicianYes: "Amazing. Bring your instrument.",
 };
 

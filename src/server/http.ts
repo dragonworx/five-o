@@ -51,6 +51,11 @@ export function forbidden(message = "Forbidden"): Response {
   return json({ error: message }, { status: 403 });
 }
 
+// `code` lets the client tell a specific rejection apart from a generic failure.
+export function conflict(message: string, code: string): Response {
+  return json({ error: message, code }, { status: 409 });
+}
+
 export function tooManyRequests(retryAfterSeconds: number): Response {
   return new Response(JSON.stringify({ error: "Too many requests" }), {
     status: 429,

@@ -1,14 +1,16 @@
 import { CONFIG } from "../../config/party.config";
+import { NAME_TAKEN } from "../../shared/error-codes";
 import {
   createGuest,
+  isNameTaken,
   markSlidesSeen,
   resolveGuest,
   toSummary,
   updateGuestRsvp,
   type RsvpFields,
 } from "../guests";
-import { badRequest, json, notFound, parseJson, type ApiContext } from "../http";
-import { rsvpRequestSchema, type Diet, type RsvpRequest } from "../schemas";
+import { badRequest, conflict, json, notFound, parseJson, type ApiContext } from "../http";
+import { nameCheckRequestSchema, rsvpRequestSchema, type Diet, type RsvpRequest } from "../schemas";
 import { readGuestFromCookie, sessionCookieHeader } from "../identity/cookie";
 import { buildDeviceContext, repointDeviceSignals, writeThrough } from "../identity/signals";
 
@@ -56,6 +58,11 @@ export async function handleRsvp(req: Request, ctx: ApiContext): Promise<Respons
   const device = buildDeviceContext({ cookieGuestId, signals: data, ip: ctx.ip, ua: ctx.ua });
 
   const existing = cookieGuestId ? resolveGuest(cookieGuestId) : null;
+  // Full names identify guests, so a name held by anyone but the caller is refused.
+  // Checked here (synchronously, right before the write) and backed by a unique index.
+  if (isNameTaken(fields.name, existing?.id ?? null)) {
+    return conflict("Someone has already RSVPed with that name", NAME_TAKEN);
+  }
   const guest = existing
     ? updateGuestRsvp(existing.id, fields)
     : createGuest(fields, data.overriddenFrom ?? null);
@@ -67,6 +74,17 @@ export async function handleRsvp(req: Request, ctx: ApiContext): Promise<Respons
   }
 
   return json({ guest: toSummary(guest) }, { cookie: sessionCookieHeader(guest.id) });
+}
+
+// Live validation for the name field. Says only whether the name is free for this
+// caller (their own current name counts as free); reveals nothing about who holds it.
+export async function handleNameCheck(req: Request): Promise<Response> {
+  const body = await parseJson(req, nameCheckRequestSchema);
+  if (!body.ok) return badRequest(body.error);
+
+  const cookieGuestId = readGuestFromCookie(req);
+  const existing = cookieGuestId ? resolveGuest(cookieGuestId) : null;
+  return json({ available: !isNameTaken(body.data.name.trim(), existing?.id ?? null) });
 }
 
 export function handleSlidesComplete(req: Request): Response {

@@ -22,8 +22,8 @@ export default {
       },
       {
         src: "/img/slides/space-walk.jpeg",
-        caption: "1998. Helped build the International Space Station.",
-        alt: "1998. Helped build the International Space Station.",
+        caption: "1998. Fixed the thingy on the International Space Station.",
+        alt: "1998. Fixed the thingy on the International Space Station.",
       },
       {
         src: "/img/slides/illuminati.jpeg",
