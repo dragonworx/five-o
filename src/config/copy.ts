@@ -18,7 +18,7 @@ const copy: CopyConfig = {
   slidesCta: "Slide Show",
   slidesIntro: "Presenting {count} things you didn't know about Ali",
   detailsTitle: "Details",
-  detailsRsvpCta: "RSVP",
+  detailsRsvpCta: "Let me RSVP!",
   musicianYes: "Amazing. Bring your instrument!",
 };
 

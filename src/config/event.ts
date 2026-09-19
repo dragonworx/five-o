@@ -16,7 +16,6 @@ const event: EventConfig = {
   startsAt: "2026-10-10T13:30:00+11:00",
   endsAt: "2026-10-10T23:30:00+11:00",
   timezone: "Australia/Sydney",
-  calendarTitle: "Ali's 50th",
   notes: ["Kids Welcome", "There will be jamming", "Catered dinner", "It's BYO", "Under cover", "Parking at top of mountain"],
   rsvpDeadline: "2026-10-01T23:59:59+10:00",
 };

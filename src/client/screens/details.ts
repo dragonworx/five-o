@@ -1,4 +1,4 @@
-import { formatEventWhen, toGoogleCalendarUrl, toIcsDataUrl } from "../calendar";
+import { formatEventWhen } from "../calendar";
 import { card, ghostButton, screen, slidesButton } from "../components";
 import { el, mount } from "../dom";
 import { attendingCanSeeDetails, canPreviewDetails } from "../flow";
@@ -15,19 +15,12 @@ function addressBlock(): HTMLElement {
   ]);
 }
 
-function calendarLinks(): HTMLElement {
-  const event = config().event;
-  const google = el(
-    "a",
-    { class: "btn btn-ghost", href: toGoogleCalendarUrl(event), attrs: { target: "_blank", rel: "noopener" } },
-    ["Add to Google Calendar"],
-  );
-  const ics = el(
-    "a",
-    { class: "btn btn-ghost", href: toIcsDataUrl(event), attrs: { download: "fifty.ics" } },
-    ["Download .ics"],
-  );
-  return el("div", { class: "stack" }, [google, ics]);
+function whenBlock(): HTMLElement {
+  const { day, time } = formatEventWhen(config().event);
+  return el("div", { class: "when" }, [
+    el("div", { class: "when-day" }, [day]),
+    el("div", { class: "when-time" }, [time]),
+  ]);
 }
 
 function notesBlock(): HTMLElement | null {
@@ -55,12 +48,7 @@ export function render(root: HTMLElement): void {
   const children: (Node | string)[] = [
     el("h1", {}, [copy().detailsTitle]),
     // el("p", { class: "lead" }, [event.title]),
-    card([
-      addressBlock(),
-      mapLink,
-      el("p", { class: "when" }, [formatEventWhen(event)]),
-      calendarLinks(),
-    ]),
+    card([whenBlock(), addressBlock(), mapLink]),
   ];
 
   const notes = notesBlock();

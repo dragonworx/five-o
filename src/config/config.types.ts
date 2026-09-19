@@ -16,7 +16,6 @@ export interface EventConfig {
   endsAt: string;
   /** IANA timezone, e.g. "Australia/Sydney" */
   timezone: string;
-  calendarTitle: string;
   notes: readonly string[];
   rsvpDeadline: string;
 }
