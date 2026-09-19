@@ -58,41 +58,81 @@ interface GestureHandlers {
   pauseEnd: () => void;
 }
 
-function wireGestures(stage: HTMLElement, h: GestureHandlers): void {
+// Listeners are bound with `signal`, so aborting it unbinds them and the hold
+// timer is cleared by `cleanup` when the screen is torn down.
+function wireGestures(stage: HTMLElement, h: GestureHandlers, signal: AbortSignal): () => void {
   let startX = 0;
   let startT = 0;
   let holdTimer = 0;
+  let heldLong = false;
+  let pressed = false; // a press that began on the stage and has not ended yet
 
-  on(stage, "pointerdown", (ev) => {
-    startX = ev.clientX;
-    startT = performance.now();
-    h.pauseStart();
-    holdTimer = window.setTimeout(() => (holdTimer = -1), HOLD_MS);
-  });
-
-  on(stage, "pointerup", (ev) => {
-    const heldLong = holdTimer === -1;
-    if (holdTimer > 0) clearTimeout(holdTimer);
-    const dx = ev.clientX - startX;
-    const dt = Math.max(1, performance.now() - startT);
-    const velocity = Math.abs(dx) / dt;
-
-    if (Math.abs(dx) > SWIPE_MIN_PX && velocity > SWIPE_MIN_VELOCITY) {
-      if (dx < 0) h.next();
-      else h.prev();
-      return;
+  const clearHold = (): void => {
+    if (holdTimer) {
+      clearTimeout(holdTimer);
+      holdTimer = 0;
     }
-    if (heldLong) {
-      h.pauseEnd();
-      return;
-    }
-    // Tap zones: left third back, otherwise advance.
-    const third = stage.clientWidth / 3;
-    if (ev.clientX - stage.getBoundingClientRect().left < third) h.prev();
-    else h.next();
-  });
+  };
+  // The press ended without a gesture (cancelled, or the pointer left the stage
+  // before release): resume autoplay, which the pointerdown had paused.
+  const abandon = (): void => {
+    if (!pressed) return;
+    pressed = false;
+    clearHold();
+    h.pauseEnd();
+  };
 
-  on(stage, "pointercancel", () => h.pauseEnd());
+  on(
+    stage,
+    "pointerdown",
+    (ev) => {
+      pressed = true;
+      heldLong = false;
+      startX = ev.clientX;
+      startT = performance.now();
+      h.pauseStart();
+      clearHold();
+      holdTimer = window.setTimeout(() => {
+        holdTimer = 0;
+        heldLong = true;
+      }, HOLD_MS);
+    },
+    { signal },
+  );
+
+  on(
+    stage,
+    "pointerup",
+    (ev) => {
+      // Ignore a release whose press did not start here (e.g. dragged in from elsewhere).
+      if (!pressed) return;
+      pressed = false;
+      clearHold();
+      const dx = ev.clientX - startX;
+      const dt = Math.max(1, performance.now() - startT);
+      const velocity = Math.abs(dx) / dt;
+
+      if (Math.abs(dx) > SWIPE_MIN_PX && velocity > SWIPE_MIN_VELOCITY) {
+        if (dx < 0) h.next();
+        else h.prev();
+        return;
+      }
+      if (heldLong) {
+        h.pauseEnd();
+        return;
+      }
+      // Tap zones: left third back, otherwise advance.
+      const third = stage.clientWidth / 3;
+      if (ev.clientX - stage.getBoundingClientRect().left < third) h.prev();
+      else h.next();
+    },
+    { signal },
+  );
+
+  on(stage, "pointercancel", abandon, { signal });
+  on(stage, "pointerleave", abandon, { signal });
+
+  return clearHold;
 }
 
 export function render(root: HTMLElement): (() => void) | void {
@@ -137,6 +177,18 @@ export function render(root: HTMLElement): (() => void) | void {
     leaveSlides();
   };
 
+  const prevBtn = controlButton("‹", "Previous slide");
+  const playBtn = controlButton("⏸", "Pause");
+  const nextBtn = controlButton("›", "Next slide");
+
+  // Previous has nowhere to go on the first slide, so it fades (aria-disabled, not
+  // `disabled`, so a focused button keeps focus). Next stays live on the last slide
+  // because it leaves the show, and is labelled for what it now does.
+  const syncControls = (): void => {
+    prevBtn.setAttribute("aria-disabled", String(index === 0));
+    nextBtn.setAttribute("aria-label", index === items.length - 1 ? "Finish slideshow" : "Next slide");
+  };
+
   const show = (i: number): void => {
     const item = items[i];
     if (!item || finished) return;
@@ -145,6 +197,7 @@ export function render(root: HTMLElement): (() => void) | void {
     img.alt = item.alt;
     caption.textContent = item.caption;
     updateProgress(bar, i);
+    syncControls();
     springIn(caption);
     img.classList.remove("kenburns");
     img.getBoundingClientRect(); // force reflow to restart the Ken Burns animation
@@ -159,23 +212,24 @@ export function render(root: HTMLElement): (() => void) | void {
     else show(index + 1);
   };
   const prev = (): void => {
+    if (finished) return;
     if (index > 0) show(index - 1);
+    else restartAuto(); // a press on the stage paused autoplay; a no-op back must resume it
   };
 
-  wireGestures(figure, { next, prev, pauseStart: clearAuto, pauseEnd: restartAuto });
+  const listeners = new AbortController();
+  const { signal } = listeners;
+  const stopGestures = wireGestures(figure, { next, prev, pauseStart: clearAuto, pauseEnd: restartAuto }, signal);
 
-  const prevBtn = controlButton("‹", "Previous slide");
-  const playBtn = controlButton("⏸", "Pause");
-  const nextBtn = controlButton("›", "Next slide");
   const togglePause = (): void => {
     paused = !paused;
     playBtn.textContent = paused ? "▶" : "⏸";
     playBtn.setAttribute("aria-label", paused ? "Play" : "Pause");
     restartAuto();
   };
-  on(prevBtn, "click", prev);
-  on(nextBtn, "click", next);
-  on(playBtn, "click", togglePause);
+  on(prevBtn, "click", () => prev(), { signal });
+  on(nextBtn, "click", () => next(), { signal });
+  on(playBtn, "click", togglePause, { signal });
 
   const top = el("div", { class: "slides-top", attrs: { "aria-hidden": "true" } });
   const intro = el("p", { class: "slides-intro" }, [interpolate(copy().slidesIntro, { count: items.length })]);
@@ -186,6 +240,7 @@ export function render(root: HTMLElement): (() => void) | void {
 
   mount(root, screen(content));
   updateProgress(bar, 0);
+  syncControls();
 
   // The title is shown alone in the centre first; the slideshow starts as it
   // glides up to its place and the rest fades in.
@@ -201,5 +256,7 @@ export function render(root: HTMLElement): (() => void) | void {
   return () => {
     finished = true;
     clearAuto();
+    stopGestures();
+    listeners.abort();
   };
 }

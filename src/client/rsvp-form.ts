@@ -181,6 +181,8 @@ export interface RsvpForm {
   fields: HTMLElement[];
   /** The submit button, so the caller can place it in an action bar. */
   submit: HTMLButtonElement;
+  /** Focuses the empty name field on touch devices (raising the keyboard). Call once the form is in the DOM. */
+  focusName: () => void;
 }
 
 interface RsvpFormOptions {
@@ -281,6 +283,8 @@ export function buildRsvpForm({ onSaved, belowChoice }: RsvpFormOptions): RsvpFo
     submit.disabled = !ready;
     // Once there is a usable name, the button gets the loud hero style so it isn't missed.
     submit.classList.toggle("btn-hero", state.name.trim().length > 0 && !nameTaken);
+    // An empty name pulses periodically, focused or not (see .input[data-empty] in base.css).
+    nameInput.toggleAttribute("data-empty", state.name.trim().length === 0);
   }
 
   async function doSubmit(): Promise<void> {
@@ -337,7 +341,12 @@ export function buildRsvpForm({ onSaved, belowChoice }: RsvpFormOptions): RsvpFo
     noSection,
     error,
   ];
-  return { fields, submit };
+  function focusName(): void {
+    if (existing || state.name.trim() || !window.matchMedia("(pointer: coarse)").matches) return;
+    nameInput.focus();
+  }
+
+  return { fields, submit, focusName };
 }
 
 function choiceCard(label: string, kind: "yes" | "no"): HTMLButtonElement {

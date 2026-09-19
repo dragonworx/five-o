@@ -76,6 +76,17 @@
   font-size: var(--step-2);
   line-height: 1;
 }
+/* No direction to go (previous on the first slide): faded and inert-looking. The
+   button stays focusable, so the hover/active feedback is cancelled explicitly. */
+.slides-btn[aria-disabled="true"],
+.slides-btn[aria-disabled="true"]:hover,
+.slides-btn[aria-disabled="true"]:active {
+  opacity: 0.35;
+  cursor: default;
+  transform: none;
+  border-color: var(--border-strong);
+  color: var(--text);
+}
 
 @media (min-width: 768px) {
   /* Stage height = 100dvh minus ~19rem of chrome (screen padding, spacer, intro,

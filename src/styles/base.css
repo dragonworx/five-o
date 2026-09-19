@@ -114,7 +114,8 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   justify-content: center;
   gap: var(--space-2);
   transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-mid) var(--ease-out),
-    background var(--dur-mid) var(--ease-out), border-color var(--dur-mid) var(--ease-out), color var(--dur-mid) var(--ease-out);
+    background var(--dur-mid) var(--ease-out), border-color var(--dur-mid) var(--ease-out), color var(--dur-mid) var(--ease-out),
+    opacity var(--dur-mid) var(--ease-out);
   text-decoration: none;
 }
 .btn:active { transform: scale(0.97); }
@@ -138,7 +139,11 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   color: var(--text);
   font-size: var(--step-1);
 }
-.btn-round:hover { border-color: var(--accent); color: var(--accent); }
+/* Hover only where a pointer can really hover: on touch it sticks after a tap and
+   leaves the button looking highlighted. */
+@media (hover: hover) {
+  .btn-round:hover { border-color: var(--accent); color: var(--accent); }
+}
 
 /* Hero CTA (slide show, and the RSVP button once a name is entered) — a C64
    sprite: white face, stepped hard-edge shadow in two palette colours, a CSS play
@@ -205,6 +210,17 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
 .input::placeholder { color: color-mix(in oklab, var(--text-muted) 80%, transparent); }
 .input:focus { outline: none; border-color: var(--accent); box-shadow: var(--glow-accent); }
 .input[aria-invalid="true"] { border-color: var(--danger); }
+
+/* An empty name field pulses now and then: two beats, then a rest, repeating. It keeps
+   pulsing while focused (the keyboard is up but nothing is typed yet); the rest values
+   fall back to the focus ring so the field never loses its focus styling mid-cycle. */
+.input[data-empty] { --nudge-border: var(--border); --nudge-ring: 0 0 0 0 transparent; }
+.input[data-empty]:focus { --nudge-border: var(--accent); --nudge-ring: var(--glow-accent); }
+@keyframes name-nudge {
+  0%, 60%, 100% { border-color: var(--nudge-border); box-shadow: var(--nudge-ring); }
+  10%, 40% { border-color: var(--accent); box-shadow: 0 0 0 6px color-mix(in oklab, var(--accent) 45%, transparent); }
+  25%, 55% { border-color: var(--nudge-border); box-shadow: var(--nudge-ring); }
+}
 .textarea { min-height: 5.5rem; resize: vertical; }
 
 /* Character counter under the note box: fill bar + "🍬 used / max". The colour
@@ -474,6 +490,8 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
 
 @media (prefers-reduced-motion: no-preference) {
   .brand::after { animation: blink 1.06s steps(1) infinite; }
+
+  .input[data-empty] { animation: name-nudge 4s ease-in-out 1s infinite; }
 
   .btn-hero::after { animation: hero-sweep 2.4s steps(14) infinite; }
   .btn-hero .hero-play { animation: hero-pulse 1.06s steps(2) infinite; }

@@ -15,7 +15,7 @@ const copy: CopyConfig = {
   attendingYes: "Yarp! 🥳",
   attendingNo: "Narp 🥲",
   declineThanks: "All good my friend, hope to see you soon!",
-  slidesCta: "Slide Show",
+  slidesCta: "Start Slide Show!",
   slidesIntro: "Presenting {count} things you didn't know about Ali",
   detailsTitle: "Details",
   detailsRsvpCta: "Let me RSVP!",

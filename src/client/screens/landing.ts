@@ -34,7 +34,7 @@ async function claimIdentity(guestId: string, claimToken: string): Promise<void>
 
 // The landing screen is identity first, then the RSVP: who you are (greeting, or
 // a way back to an earlier RSVP), followed by the form and its submit bar.
-function identityView(g: GuestSummary | null): { content: HTMLElement[]; footer: HTMLElement } {
+function identityView(g: GuestSummary | null): { content: HTMLElement[]; footer: HTMLElement; focusName: () => void } {
   // A guest we don't recognise can look themselves up, right under the yarp / narp buttons.
   const form = buildRsvpForm({
     onSaved: (saved, first) => navigate(destinationAfterRsvp(saved, first)),
@@ -61,7 +61,7 @@ function identityView(g: GuestSummary | null): { content: HTMLElement[]; footer:
   }
   content.push(privacyNote());
 
-  return { content, footer: actionBar([form.submit], "compact") };
+  return { content, footer: actionBar([form.submit], "compact"), focusName: form.focusName };
 }
 
 function softView(sm: SoftMatchState): HTMLElement {
@@ -158,14 +158,17 @@ export function render(root: HTMLElement): void {
 
   // Unresolved matches take over the screen: identity is settled before the form.
   let scr: HTMLElement;
+  let focusName: (() => void) | undefined;
   if (!g && amb) scr = screen([ambiguousView(amb)]);
   else if (!g && sm) scr = screen([softView(sm)]);
   else {
-    const { content, footer } = identityView(g);
-    scr = screen(content, footer);
+    const view = identityView(g);
+    focusName = view.focusName;
+    scr = screen(view.content, view.footer);
   }
 
   mount(root, scr);
   const main = root.querySelector(".screen");
   if (main) springIn(main);
+  focusName?.();
 }
