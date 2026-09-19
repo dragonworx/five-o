@@ -54,8 +54,7 @@
   }
   .action-bar .btn { flex: 0 1 auto; min-width: 12rem; }
 
-  .lookup summary,
-  .lookup-link { font-size: var(--step-1); }
+  .lookup summary { font-size: var(--step-1); }
 
   /* The instrument toggle only stretches full-width on mobile. */
   .toggle { align-self: flex-start; }

@@ -49,13 +49,18 @@ export function ghostButton(label: string, onClick: () => void): HTMLButtonEleme
 // The slide show call-to-action. Deliberately louder than the other buttons: it
 // throws a note burst on press, then waits a beat so the guest sees it before the
 // screen changes (the notes live on <body>, so they keep flying over the slides).
+// Pass `burst: false` to keep the look but navigate straight away.
 const SLIDES_LEAD_MS = 450;
 
-export function slidesButton(label: string, onClick: () => void): HTMLButtonElement {
+export function slidesButton(label: string, onClick: () => void, burst = true): HTMLButtonElement {
   const play = el("span", { class: "hero-play", attrs: { "aria-hidden": "true" } });
   const btn = el("button", { class: "btn btn-hero", type: "button" }, [play, el("span", {}, [label])]);
   on(btn, "click", () => {
     btn.disabled = true; // one burst per press, no double navigation
+    if (!burst) {
+      onClick();
+      return;
+    }
     confettiBurst(btn);
     if (prefersReducedMotion()) onClick();
     else window.setTimeout(onClick, SLIDES_LEAD_MS);

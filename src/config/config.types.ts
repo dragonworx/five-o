@@ -95,7 +95,7 @@ export interface CopyConfig {
   slidesIntro: string;
   /** Heading on the details page, the same for new and returning guests. */
   detailsTitle: string;
-  /** Call to action on the details page that takes a guest who has not RSVPed back to the form. */
+  /** Label of the details-page hero button that takes a guest who has not RSVPed back to the form. */
   detailsRsvpCta: string;
   musicianYes: string;
 }

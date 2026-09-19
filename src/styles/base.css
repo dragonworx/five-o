@@ -362,10 +362,8 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
 
 /* Lookup */
 .lookup { margin-top: var(--space-5); }
-/* The two quiet links ("Edit my previous RSVP" under the yes/no buttons, "Event Details"
-   under the hero) share one look; desktop bumps the size in desktop.css. */
-.lookup summary,
-.lookup-link {
+/* The quiet "Edit my previous RSVP" link under the yes/no buttons; desktop bumps the size in desktop.css. */
+.lookup summary {
   cursor: pointer;
   color: var(--accent);
   font-size: var(--step-0);
@@ -374,14 +372,8 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   padding: var(--space-2) 0;
   transition: opacity var(--dur-fast) var(--ease-out);
 }
-.lookup summary:hover,
-.lookup-link:hover { opacity: 0.8; }
-.lookup-link {
-  background: none;
-  border: none;
-  font-family: inherit;
-}
-.lookup-link-row { margin: 0 0 var(--space-4); text-align: center; }
+.lookup summary:hover { opacity: 0.8; }
+.preview-details { margin: 0 0 var(--space-4); }
 .lookup-body { margin-top: var(--space-3); display: flex; flex-direction: column; gap: var(--space-3); }
 
 /* Landing: identity hero + RSVP form on a single screen, kept compact so the name

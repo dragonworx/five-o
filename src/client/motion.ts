@@ -42,6 +42,50 @@ export function springIn(node: Element, delay = 0): void {
   );
 }
 
+/**
+ * Holds `title` in the centre of the viewport for `holdMs` while `rest` stays
+ * hidden, then glides it to its layout position and fades `rest` in. `onReveal`
+ * fires as that move begins (immediately under reduced motion, which skips the
+ * whole sequence). It is skipped if the title has left the DOM by then.
+ */
+export function revealFromCentre(
+  title: HTMLElement,
+  rest: readonly HTMLElement[],
+  holdMs: number,
+  moveMs: number,
+  onReveal: () => void,
+): void {
+  if (prefersReducedMotion()) {
+    onReveal();
+    return;
+  }
+  const box = title.getBoundingClientRect();
+  const centred = `translate(${window.innerWidth / 2 - (box.left + box.width / 2)}px, ${
+    window.innerHeight / 2 - (box.top + box.height / 2)
+  }px)`;
+  const total = holdMs + moveMs;
+  for (const node of rest) node.style.visibility = "hidden";
+
+  const glide = title.animate(
+    [
+      { transform: centred, offset: 0 },
+      { transform: centred, offset: holdMs / total, easing: EASE_OUT },
+      { transform: "translate(0, 0)", offset: 1 },
+    ],
+    { duration: total, fill: "both" },
+  );
+  glide.finished.then(() => glide.cancel(), () => {});
+
+  window.setTimeout(() => {
+    if (!title.isConnected) return;
+    for (const node of rest) {
+      node.style.visibility = "";
+      node.animate({ opacity: [0, 1] }, { duration: moveMs, easing: EASE_OUT, fill: "backwards" });
+    }
+    onReveal();
+  }, holdMs);
+}
+
 // Height-animated expand/collapse for the headcount/diet steps.
 export function collapse(node: HTMLElement, open: boolean): void {
   if (prefersReducedMotion()) {

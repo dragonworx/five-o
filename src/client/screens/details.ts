@@ -1,5 +1,5 @@
 import { formatEventWhen, toGoogleCalendarUrl, toIcsDataUrl } from "../calendar";
-import { actionBar, card, ghostButton, primaryButton, screen, slidesButton } from "../components";
+import { card, ghostButton, screen, slidesButton } from "../components";
 import { el, mount } from "../dom";
 import { attendingCanSeeDetails, canPreviewDetails } from "../flow";
 import { springIn } from "../motion";
@@ -66,19 +66,18 @@ export function render(root: HTMLElement): void {
   const notes = notesBlock();
   if (notes) children.push(card([notes]));
 
+  // Before an RSVP the hero button is the way back to the form (the slides come after
+  // the first RSVP); afterwards it replays the slideshow.
   children.push(
     el("div", { class: "stack cross-links" }, [
       ...(preview ? [] : [ghostButton("Edit my RSVP", () => navigate("landing"))]),
-      slidesButton(copy().slidesCta, () => navigate("slides")),
+      preview
+        ? slidesButton(copy().detailsRsvpCta, () => navigate("landing"), false)
+        : slidesButton(copy().slidesCta, () => navigate("slides")),
     ]),
   );
 
-  // Before an RSVP, keep the way back to the form pinned to the bottom of the screen.
-  const footer = preview
-    ? actionBar([primaryButton(copy().detailsRsvpCta, () => navigate("landing"))], "compact")
-    : undefined;
-
-  mount(root, screen(children, footer));
+  mount(root, screen(children));
   const scr = root.querySelector(".screen");
   if (scr) springIn(scr);
 }

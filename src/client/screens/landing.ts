@@ -1,6 +1,6 @@
 import { claim, lookup, type GuestSummary } from "../api";
 import { actionBar, card, ghostButton, notYouLink, primaryButton, screen } from "../components";
-import { el, interpolate, mount, on } from "../dom";
+import { el, interpolate, mount } from "../dom";
 import { canPreviewDetails, destinationAfterRsvp, destinationForGuest } from "../flow";
 import { springIn } from "../motion";
 import { navigate } from "../router";
@@ -56,7 +56,7 @@ function identityView(g: GuestSummary | null): { content: HTMLElement[]; footer:
   // Once they've accepted, the venue page is a link away. Decliners get no extra link.
   if (g?.attending === true) {
     content.push(
-      el("div", { class: "stack" }, [ghostButton("See event details", () => navigate(destinationForGuest(g)))]),
+      el("div", { class: "stack" }, [ghostButton("See event details 📣", () => navigate(destinationForGuest(g)))]),
     );
   }
   content.push(privacyNote());
@@ -119,9 +119,7 @@ function lookupPanel(): HTMLElement {
 }
 
 function previewDetailsLink(): HTMLElement {
-  const link = el("button", { class: "lookup-link", type: "button" }, ["Event Details"]);
-  on(link, "click", () => navigate("details"));
-  return el("div", { class: "lookup-link-row" }, [link]);
+  return el("div", { class: "preview-details" }, [ghostButton("See event details 📣", () => navigate("details"))]);
 }
 
 async function runLookup(name: string, results: HTMLElement): Promise<void> {

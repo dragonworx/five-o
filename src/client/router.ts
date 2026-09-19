@@ -5,10 +5,13 @@ import { transitionTo } from "./motion";
 
 export type ScreenName = "landing" | "slides" | "details" | "farewell";
 
-type Renderer = (root: HTMLElement) => void;
+// A screen may return a disposer, called just before the next screen renders, so
+// timers and listeners it started do not outlive it.
+type Renderer = (root: HTMLElement) => (() => void) | void;
 
 const screens = new Map<ScreenName, Renderer>();
 let root: HTMLElement | null = null;
+let dispose: (() => void) | null = null;
 
 export function registerScreen(name: ScreenName, render: Renderer): void {
   screens.set(name, render);
@@ -18,10 +21,16 @@ function renderScreen(name: ScreenName): void {
   const render = screens.get(name);
   if (!render || !root) return;
   // Reset inside the transition callback so the new screen is captured at the top,
-  // not at the scroll offset the previous screen was left at.
+  // not at the scroll offset the previous screen was left at. This happens before
+  // the render so screens that measure their layout on mount see the final scroll.
   transitionTo(() => {
-    render(root as HTMLElement);
+    dispose?.();
+    dispose = null;
     window.scrollTo(0, 0);
+    // A screen that redirects (navigate inside render) may already have installed
+    // its successor's disposer, so only overwrite when this one returns its own.
+    const next = render(root as HTMLElement);
+    if (next) dispose = next;
   });
 }
 
