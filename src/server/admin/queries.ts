@@ -16,9 +16,6 @@ export interface Summary {
   vegan: number;
   comingCount: number;
   decliningCount: number;
-  noAnswerCount: number;
-  respondedCount: number;
-  guestCount: number;
 }
 
 interface AggregateRow {
@@ -62,7 +59,6 @@ export function getSummary(): Summary {
 
   const comingCount = countFor(1);
   const decliningCount = countFor(0);
-  const noAnswerCount = countFor(null);
 
   return {
     households: agg?.households ?? 0,
@@ -75,9 +71,6 @@ export function getSummary(): Summary {
     vegan: agg?.vegan ?? 0,
     comingCount,
     decliningCount,
-    noAnswerCount,
-    respondedCount: comingCount + decliningCount,
-    guestCount: comingCount + decliningCount + noAnswerCount,
   };
 }
 
@@ -91,7 +84,6 @@ function listByAttending(clause: string): GuestRow[] {
 
 export const getComing = (): GuestRow[] => listByAttending("attending = 1");
 export const getDeclined = (): GuestRow[] => listByAttending("attending = 0");
-export const getNoAnswer = (): GuestRow[] => listByAttending("attending IS NULL");
 
 export function getSuperseded(): GuestRow[] {
   return db

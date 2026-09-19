@@ -28,9 +28,6 @@ interface Summary {
   vegan: number;
   comingCount: number;
   decliningCount: number;
-  noAnswerCount: number;
-  respondedCount: number;
-  guestCount: number;
 }
 
 interface Counts {
@@ -44,15 +41,14 @@ interface GuestsResponse {
   summary: Summary;
   coming: AdminGuest[];
   declined: AdminGuest[];
-  noAnswer: AdminGuest[];
   superseded: AdminGuest[];
   danger: { allowClearAll: boolean };
   counts: Counts;
 }
 
-type TabKey = "coming" | "declined" | "noAnswer";
+type TabKey = "coming" | "declined";
 
-const CSV_FOR: Record<TabKey, string> = { coming: "attending", declined: "declined", noAnswer: "all" };
+const CSV_FOR: Record<TabKey, string> = { coming: "attending", declined: "declined" };
 
 let data: GuestsResponse | null = null;
 let activeTab: TabKey = "coming";
@@ -78,12 +74,10 @@ function renderSummary(s: Summary): HTMLElement {
   const stat = (label: string, value: string): HTMLElement =>
     h("div", { className: "stat" }, [h("span", { className: "stat-value" }, [value]), h("span", { className: "stat-label" }, [label])]);
   return h("section", { className: "summary" }, [
-    stat("Coming", `${s.totalAdults} adults · ${s.totalKids} kids`),
+    stat("Coming", `${s.totalAdults} adults ▫️ ${s.totalKids} kids`),
     stat("Heads", String(s.totalHeads)),
     stat("Not coming", String(s.decliningCount)),
-    stat("No answer", String(s.noAnswerCount)),
-    stat("Responses", `${s.respondedCount} / ${s.guestCount}`),
-    stat("Diet", `${s.omnivore} · ${s.vegetarian} · ${s.vegan}`),
+    stat("Diet", `${s.omnivore} ▫️ ${s.vegetarian} ▫️ ${s.vegan}`),
     stat("Musicians", `🎸 ${s.musicians}`),
   ]);
 }
@@ -103,14 +97,12 @@ function comingColumns(g: AdminGuest): (string | Node)[] {
 
 function headerFor(tab: TabKey): string[] {
   if (tab === "coming") return ["Name", "Adults", "Kids", "Heads", "Musician", "Diet", "Message", "Updated"];
-  if (tab === "declined") return ["Name", "Message", "Updated"];
-  return ["Name", "Started", "Updated"];
+  return ["Name", "Message", "Updated"];
 }
 
 function rowFor(tab: TabKey, g: AdminGuest): (string | Node)[] {
   if (tab === "coming") return comingColumns(g);
-  if (tab === "declined") return [g.name, g.message ?? "", fmtDate(g.updatedAt)];
-  return [g.name, fmtDate(g.createdAt), fmtDate(g.updatedAt)];
+  return [g.name, g.message ?? "", fmtDate(g.updatedAt)];
 }
 
 function renderTable(): HTMLElement {
@@ -194,7 +186,6 @@ function render(): void {
   document.getElementById("tabs")?.replaceChildren(
     tabButton("coming", "Coming", data.summary.comingCount),
     tabButton("declined", "Not coming", data.summary.decliningCount),
-    tabButton("noAnswer", "No answer", data.summary.noAnswerCount),
   );
   document.getElementById("toolbar")?.replaceChildren(renderToolbar());
   document.getElementById("list")?.replaceChildren(renderTable());

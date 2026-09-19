@@ -14,12 +14,12 @@ const copy: CopyConfig = {
   attendingQuestion: "Can you make it?",
   attendingYes: "Yarp! 🥳",
   attendingNo: "Narp 🥲",
-  declineThanks: "All good my friend, catch you soon!",
+  declineThanks: "All good my friend, hope to see you soon!",
   slidesCta: "Slide Show",
-  slidesIntro: "{count} totally factual events.",
+  slidesIntro: "{count} things you didn't know",
   detailsTitle: "Details",
   detailsRsvpCta: "RSVP now",
-  musicianYes: "Amazing. Bring your instrument.",
+  musicianYes: "Amazing. Bring your instrument!",
 };
 
 export default copy;

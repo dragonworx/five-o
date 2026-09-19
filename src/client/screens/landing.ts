@@ -1,7 +1,7 @@
 import { claim, lookup, type GuestSummary } from "../api";
 import { actionBar, card, ghostButton, notYouLink, primaryButton, screen } from "../components";
 import { el, interpolate, mount, on } from "../dom";
-import { canPreviewDetails, destinationAfterRsvp, destinationForGuest, hasRsvped } from "../flow";
+import { canPreviewDetails, destinationAfterRsvp, destinationForGuest } from "../flow";
 import { springIn } from "../motion";
 import { navigate } from "../router";
 import { buildRsvpForm } from "../rsvp-form";
@@ -32,10 +32,6 @@ async function claimIdentity(guestId: string, claimToken: string): Promise<void>
   }
 }
 
-function detailsLinkLabel(g: GuestSummary): string {
-  return g.attending === false ? "See your message" : "See event details";
-}
-
 // The landing screen is identity first, then the RSVP: who you are (greeting, or
 // a way back to an earlier RSVP), followed by the form and its submit bar.
 function identityView(g: GuestSummary | null): { content: HTMLElement[]; footer: HTMLElement } {
@@ -57,10 +53,10 @@ function identityView(g: GuestSummary | null): { content: HTMLElement[]; footer:
   // Anyone who hasn't answered yet can look at the venue before deciding.
   if (canPreviewDetails(g)) content.push(previewDetailsLink());
   content.push(el("div", { class: "rsvp-form" }, form.fields));
-  // Once an RSVP exists, the venue / farewell page is a link away.
-  if (g && hasRsvped(g)) {
+  // Once they've accepted, the venue page is a link away. Decliners get no extra link.
+  if (g?.attending === true) {
     content.push(
-      el("div", { class: "stack" }, [ghostButton(detailsLinkLabel(g), () => navigate(destinationForGuest(g)))]),
+      el("div", { class: "stack" }, [ghostButton("See event details", () => navigate(destinationForGuest(g)))]),
     );
   }
   content.push(privacyNote());

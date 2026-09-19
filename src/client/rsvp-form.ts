@@ -136,7 +136,7 @@ function charCounter(box: HTMLTextAreaElement, max: number): { node: HTMLElement
     const length = box.value.length;
     const tier = countTier(length, max);
     used.textContent = String(length);
-    hint.textContent = COUNT_TIER_HINT[tier] ? ` · ${COUNT_TIER_HINT[tier]}` : "";
+    hint.textContent = COUNT_TIER_HINT[tier] ? ` ▫️ ${COUNT_TIER_HINT[tier]}` : "";
     fill.style.transform = `scaleX(${Math.min(1, length / max)})`;
     node.dataset.tier = tier;
     if (tier !== lastTier) {

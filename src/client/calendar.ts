@@ -21,14 +21,14 @@ export function formatEventWhen(event: EventConfig): string {
     minute: "2-digit",
     timeZone: event.timezone,
   });
-  return `${dayFmt.format(start)} · ${timeFmt.format(start)} – ${timeFmt.format(end)}`;
+  return `${dayFmt.format(start)} ▫️ ${timeFmt.format(start)} – ${timeFmt.format(end)}`;
 }
 
 export function toGoogleCalendarUrl(event: EventConfig): string {
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: event.calendarTitle,
-    details: event.notes.join(" · "),
+    details: event.notes.join(" ▫️ "),
     location: [event.venueName, ...event.addressLines].join(", "),
   });
   // Google Calendar needs a literal "/" between the start and end; URLSearchParams
@@ -58,7 +58,7 @@ export function toIcsDataUrl(event: EventConfig): string {
     `DTEND:${toUtcBasic(event.endsAt)}`,
     `SUMMARY:${escapeIcs(event.calendarTitle)}`,
     `LOCATION:${escapeIcs([event.venueName, ...event.addressLines].join(", "))}`,
-    `DESCRIPTION:${escapeIcs(event.notes.join(" · "))}`,
+    `DESCRIPTION:${escapeIcs(event.notes.join(" ▫️ "))}`,
     "END:VEVENT",
     "END:VCALENDAR",
   ];

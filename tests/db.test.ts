@@ -114,8 +114,6 @@ describe("headcount aggregates", () => {
     expect(s.musicians).toBe(1);
     expect(s.comingCount).toBe(2);
     expect(s.decliningCount).toBe(1);
-    expect(s.noAnswerCount).toBe(0);
-    expect(s.respondedCount).toBe(3);
   });
 
   test("flipping yes → no zeroes that party's contribution", () => {

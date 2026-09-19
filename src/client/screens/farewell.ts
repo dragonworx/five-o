@@ -8,7 +8,7 @@ export function render(root: HTMLElement): void {
   const canWatchSlides = config().form.decline.showSlides;
 
   const actions: HTMLElement[] = [
-    primaryButton("Actually, I can make it", () => {
+    primaryButton("Wait, I can make it!", () => {
       setFormIntent(true);
       navigate("landing");
     }),
@@ -20,7 +20,7 @@ export function render(root: HTMLElement): void {
   const content = [
     card([
       el("h1", {}, [copy().declineThanks]),
-      el("p", { class: "muted" }, ["Changed your mind? You can flip your answer any time."]),
+      el("p", { class: "muted" }, ["Changed your mind? You can come back and flip your answer any time."]),
       el("div", { class: "stack" }, actions),
     ]),
   ];

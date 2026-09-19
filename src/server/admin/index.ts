@@ -8,7 +8,7 @@ import { handleClearAll } from "./clear-all";
 import { handleCorrection } from "./correction";
 import { guestsCsv, type CsvList } from "./export-csv";
 import { renderAdminShell } from "./html";
-import { getComing, getDeclined, getNoAnswer, getSuperseded, getSummary, getVisits } from "./queries";
+import { getComing, getDeclined, getSuperseded, getSummary, getVisits } from "./queries";
 
 async function buildAdmin(): Promise<string> {
   const result = await Bun.build({
@@ -101,7 +101,6 @@ function guestsResponse(): Response {
     summary: getSummary(),
     coming: getComing().map(serialize),
     declined: getDeclined().map(serialize),
-    noAnswer: getNoAnswer().map(serialize),
     superseded: getSuperseded().map(serialize),
     danger: { allowClearAll: CONFIG.admin.dangerZone.allowClearAll },
     counts: {

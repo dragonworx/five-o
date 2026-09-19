@@ -58,5 +58,5 @@
   .lookup-link { font-size: var(--step-1); }
 
   /* The instrument toggle only stretches full-width on mobile. */
-  .toggle { width: auto; align-self: flex-start; }
+  .toggle { align-self: flex-start; }
 }

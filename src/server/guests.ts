@@ -105,13 +105,13 @@ export function findNameMatches(normalised: string, limit = 5): GuestRow[] {
 
 // A confirmation summary that reveals little to a stranger guessing names.
 export function redactedLabel(row: GuestRow): string {
-  if (row.attending === 0) return `${row.name} · not coming`;
-  if (row.attending === null) return `${row.name} · not answered yet`;
+  if (row.attending === 0) return `${row.name} ▫️ not coming`;
+  if (row.attending === null) return `${row.name} ▫️ not answered yet`;
   const party: string[] = [];
   if (row.adults > 0) party.push(`${row.adults} ${row.adults === 1 ? "adult" : "adults"}`);
   if (row.kids > 0) party.push(`${row.kids} ${row.kids === 1 ? "kid" : "kids"}`);
   if (row.diet) party.push(row.diet);
-  return `${row.name} · ${party.join(" · ") || "coming"}`;
+  return `${row.name} ▫️ ${party.join(" ▫️ ") || "coming"}`;
 }
 
 function writeAudit(guestId: string, action: string, before: GuestRow | null, after: GuestRow | null): void {

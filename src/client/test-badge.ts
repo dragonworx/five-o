@@ -7,6 +7,6 @@ import { el } from "./dom";
 export function showTestBadge(): void {
   if (document.querySelector(".test-badge")) return;
   document.body.append(
-    el("div", { class: "test-badge", attrs: { "aria-hidden": "true" } }, ["Test mode · not saved"]),
+    el("div", { class: "test-badge", attrs: { "aria-hidden": "true" } }, ["Test mode ▫️ not saved"]),
   );
 }
