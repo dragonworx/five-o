@@ -14,13 +14,8 @@ const slides = [
   },
   {
     src: "/img/slides/young-genius-award.jpeg",
-    caption: "{year}. Youngest person ever to not need to go to university.",
-    alt: "{year}. Youngest person ever to not need to go to university.",
-  },
-  {
-    src: "/img/slides/illuminati.jpeg",
-    caption: "{year}. Finally, inducted into the Illuminati by the lizard people, west chapter.",
-    alt: "{year}. Finally, inducted into the Illuminati by the lizard people, west chapter.",
+    caption: "{year}. Youngest person ever to NOT need to go to university.",
+    alt: "{year}. Youngest person ever to NOT need to go to university.",
   },
   {
     src: "/img/slides/jumped-grand-canyon.jpeg",
@@ -34,13 +29,13 @@ const slides = [
   },
   {
     src: "/img/slides/chess-boxing.jpeg",
-    caption: "{year}. Undefeated chess-boxing champion. Checkmate, then check, check, left hook.",
-    alt: "{year}. Undefeated chess-boxing champion. Checkmate, then check, check, left hook.",
+    caption: "{year}. Undefeated chess-boxing champion. Checkmate, then big left hook.",
+    alt: "{year}. Undefeated chess-boxing champion. Checkmate, then big left hook.",
   },
   {
     src: "/img/slides/space-walk.jpeg",
-    caption: "{year}. Fixed the thingy on the International Space Station.",
-    alt: "{year}. Fixed the thingy on the International Space Station.",
+    caption: "{year}. Fixed the silver thingy on the International Space Station.",
+    alt: "{year}. Fixed the silver thingy on the International Space Station.",
   },
   {
     src: "/img/slides/yodeling.jpeg",
@@ -59,8 +54,13 @@ const slides = [
   },
   {
     src: "/img/slides/trump.jpeg",
-    caption: "{year}. Helped Trump finally drain the swamp.",
-    alt: "{year}. Helped Trump finally drain the swamp.",
+    caption: "{year}. Helped Trump FINALLY drain the swamp, HUUUGGE.",
+    alt: "{year}. Helped Trump FINALLY drain the swamp, HUUUGGE.",
+  },
+  {
+    src: "/img/slides/illuminati.jpeg",
+    caption: "{year}. Finally, inducted into the Illuminati by the lizard people, central coast chapter.",
+    alt: "{year}. Finally, inducted into the Illuminati by the lizard people, central coast chapter.",
   },
 ];
 

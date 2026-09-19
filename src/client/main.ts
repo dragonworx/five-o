@@ -7,6 +7,7 @@ import * as landing from "./screens/landing";
 import * as slides from "./screens/slides";
 import * as details from "./screens/details";
 import * as farewell from "./screens/farewell";
+import * as confirmed from "./screens/confirmed";
 
 function applyIdentify(res: IdentifyResponse): void {
   if (res.outcome === "auto") {
@@ -28,6 +29,7 @@ function registerScreens(): void {
   registerScreen("slides", slides.render);
   registerScreen("details", details.render);
   registerScreen("farewell", farewell.render);
+  registerScreen("confirmed", confirmed.render);
 }
 
 async function boot(): Promise<void> {

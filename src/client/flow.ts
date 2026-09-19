@@ -2,8 +2,8 @@ import type { GuestSummary } from "./api";
 import { config } from "./store";
 import type { ScreenName } from "./router";
 
-// Journey: landing (identity + RSVP) → slides → details. A guest who has already
-// answered is sent straight to their final screen instead of repeating the slides.
+// Journey: landing (identity + RSVP) → confirmed (attending) or farewell (declined), from
+// where the slideshow and details are one tap away.
 
 // True once the guest has answered the RSVP either way — gates the details link.
 export function hasRsvped(g: GuestSummary): boolean {
@@ -24,12 +24,10 @@ export function destinationForGuest(g: GuestSummary): ScreenName {
   return "landing";
 }
 
-// Where to go right after saving an RSVP. A first answer goes through the slides
-// (decliners only if the host opted in); an edit skips straight to the end.
-export function destinationAfterRsvp(g: GuestSummary, first: boolean): ScreenName {
-  const skipsSlides = g.attending === false && !config().form.decline.showSlides;
-  if (first && !skipsSlides) return "slides";
-  return destinationForGuest(g);
+// Where to go right after saving an RSVP, first answer or edit: the confirmation screen
+// for guests who can come, the farewell for those who can't.
+export function destinationAfterRsvp(g: GuestSummary): ScreenName {
+  return g.attending === true ? "confirmed" : "farewell";
 }
 
 // Decliners only see the venue if the host opted in.

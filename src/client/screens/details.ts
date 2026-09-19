@@ -54,8 +54,8 @@ export function render(root: HTMLElement): void {
   const notes = notesBlock();
   if (notes) children.push(card([notes]));
 
-  // Before an RSVP the hero button is the way back to the form (the slides come after
-  // the first RSVP); afterwards it replays the slideshow.
+  // Before an RSVP the hero button is the way back to the form; afterwards it plays the
+  // slideshow.
   children.push(
     el("div", { class: "stack cross-links" }, [
       ...(preview ? [] : [ghostButton("Edit my RSVP", () => navigate("landing"))]),

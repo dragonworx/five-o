@@ -88,6 +88,8 @@ export interface CopyConfig {
   attendingYes: string;
   attendingNo: string;
   declineThanks: string;
+  /** Heading on the confirmation screen an attending guest lands on after saving their RSVP. */
+  rsvpUpdated: string;
   /** Link that replays the slideshow. */
   slidesCta: string;
   /** May contain the "{count}" placeholder. */

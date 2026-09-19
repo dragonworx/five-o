@@ -221,7 +221,7 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   10%, 40% { border-color: var(--accent); box-shadow: 0 0 0 6px color-mix(in oklab, var(--accent) 45%, transparent); }
   25%, 55% { border-color: var(--nudge-border); box-shadow: var(--nudge-ring); }
 }
-.textarea { min-height: 5.5rem; resize: vertical; }
+.textarea { min-height: 5.5rem; resize: vertical; text-align: left; }
 
 /* Character counter under the note box: fill bar + "🍬 used / max". The colour
    escalates via data-tier (set in rsvp-form.ts charCounter). */
@@ -290,7 +290,7 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   font: inherit;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: var(--step-0);
+  font-size: var(--step-1);
   display: flex;
   align-items: center;
   justify-content: center;

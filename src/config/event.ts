@@ -8,7 +8,7 @@ const event: EventConfig = {
   hostName: "Ali",
   title: "LOAD \"ALI_50\",8,1 : RUN",
   tagline: "It's probably my last 50th!",
-  venueName: "Kincumba Mountain Reserve",
+  venueName: "Kincumber Mountain Reserve",
   addressLines: ["Island View Dr", "Kincumber", "NSW 2251"],
   mapsUrl: "https://maps.app.goo.gl/fpjYhWbj6SnwvhAk6",
   // Sydney is on daylight time (AEDT, +11:00) from 4 Oct 2026; the deadline
@@ -16,7 +16,7 @@ const event: EventConfig = {
   startsAt: "2026-10-10T13:30:00+11:00",
   endsAt: "2026-10-10T23:30:00+11:00",
   timezone: "Australia/Sydney",
-  notes: ["Kids Welcome", "There will be jamming", "Catered dinner", "It's BYO", "Under cover", "Parking at top of mountain"],
+  notes: ["Kids Welcome", "There will be jamming!", "Catered dinner", "It's BYO", "Under cover", "Beautiful Views", "Parking at top of mountain"],
   rsvpDeadline: "2026-10-01T23:59:59+10:00",
 };
 

@@ -2,7 +2,7 @@ import { slidesComplete } from "../api";
 import { screen } from "../components";
 import { el, interpolate, mount, on } from "../dom";
 import { destinationForGuest } from "../flow";
-import { revealFromCentre, springIn } from "../motion";
+import { flashChars, revealFromCentre, springIn } from "../motion";
 import { navigate } from "../router";
 import { config, copy, guest } from "../store";
 
@@ -251,6 +251,7 @@ export function render(root: HTMLElement): (() => void) | void {
   };
   const rest = [top, ...(config().slides.showProgressBar ? [bar] : []), figure, controls];
   revealFromCentre(intro, rest, INTRO_HOLD_MS, INTRO_MOVE_MS, begin);
+  flashChars(intro, INTRO_HOLD_MS); // a white head scans the title while it is centred
 
   // Called by the router when this screen is replaced (including via back).
   return () => {

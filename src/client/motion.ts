@@ -86,6 +86,61 @@ export function revealFromCentre(
   }, holdMs);
 }
 
+const FLASH_RADIUS = 3; // characters on each side of the head that pick up some white
+
+/**
+ * Sweeps a white "head" through the characters of `node`'s text over
+ * `durationMs`, one character at a time (skipping whitespace). The head is
+ * fully white and its neighbours fade back to the natural text colour, so it
+ * reads like a cursor scanning the line. The original text is restored when it
+ * finishes, and it stops early if the node leaves the DOM. A no-op under
+ * prefers-reduced-motion.
+ */
+export function flashChars(node: HTMLElement, durationMs: number): void {
+  if (prefersReducedMotion()) return;
+  const text = node.textContent ?? "";
+  const chars = Array.from(text);
+  const glyphs: number[] = []; // indices into `chars` that the head can land on
+  chars.forEach((ch, i) => {
+    if (ch.trim() !== "") glyphs.push(i);
+  });
+  if (glyphs.length === 0) return;
+
+  const spans = chars.map((ch) => {
+    const span = document.createElement("span");
+    span.textContent = ch;
+    return span;
+  });
+  node.replaceChildren(...spans);
+
+  const paint = (head: number): void => {
+    spans.forEach((span, i) => {
+      const strength = Math.max(0, 1 - Math.abs(i - head) / (FLASH_RADIUS + 1));
+      span.style.color =
+        strength > 0
+          ? `color-mix(in oklab, var(--paper) ${Math.round(strength * 100)}%, var(--text-muted))`
+          : "";
+    });
+  };
+
+  const start = performance.now();
+  let lastGlyph = -1;
+  const frame = (now: number): void => {
+    const progress = (now - start) / durationMs;
+    if (!node.isConnected || progress >= 1) {
+      if (node.isConnected) node.textContent = text;
+      return;
+    }
+    const glyph = Math.min(glyphs.length - 1, Math.floor(progress * glyphs.length));
+    if (glyph !== lastGlyph) {
+      lastGlyph = glyph;
+      paint(glyphs[glyph] ?? 0);
+    }
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
 // Height-animated expand/collapse for the headcount/diet steps.
 export function collapse(node: HTMLElement, open: boolean): void {
   if (prefersReducedMotion()) {

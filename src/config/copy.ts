@@ -6,7 +6,7 @@ import type { CopyConfig } from "./config.types";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const copy: CopyConfig = {
-  landingTitle: "Ali’s Big Five 0!",
+  landingTitle: "Ali’s Big Five 0",
   landingNew: "Hope to see you!",
   landingReturning: "Welcome back {name}!",
   identityPrompt: "Is this still you?",
@@ -15,6 +15,7 @@ const copy: CopyConfig = {
   attendingYes: "Yarp! 🥳",
   attendingNo: "Narp 🥲",
   declineThanks: "All good my friend, hope to see you soon!",
+  rsvpUpdated: "Yay! See you there!",
   slidesCta: "Start Slide Show!",
   slidesIntro: "Presenting {count} things you didn't know about Ali",
   detailsTitle: "Details",

@@ -17,7 +17,7 @@ const form: FormConfig = {
   decline: {
     askMessage: true, // optional "leave a note" box
     showSlides: true, // decliners still get the slideshow
-    showDetails: false, // …but not the address
+    showDetails: true, // …and the address too
   },
 };
 

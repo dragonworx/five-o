@@ -1,7 +1,7 @@
 import { claim, lookup, type GuestSummary } from "../api";
 import { actionBar, card, ghostButton, notYouLink, primaryButton, screen } from "../components";
 import { el, interpolate, mount } from "../dom";
-import { canPreviewDetails, destinationAfterRsvp, destinationForGuest } from "../flow";
+import { attendingCanSeeDetails, canPreviewDetails, destinationAfterRsvp, hasRsvped } from "../flow";
 import { springIn } from "../motion";
 import { navigate } from "../router";
 import { buildRsvpForm } from "../rsvp-form";
@@ -37,7 +37,7 @@ async function claimIdentity(guestId: string, claimToken: string): Promise<void>
 function identityView(g: GuestSummary | null): { content: HTMLElement[]; footer: HTMLElement; focusName: () => void } {
   // A guest we don't recognise can look themselves up, right under the yarp / narp buttons.
   const form = buildRsvpForm({
-    onSaved: (saved, first) => navigate(destinationAfterRsvp(saved, first)),
+    onSaved: (saved) => navigate(destinationAfterRsvp(saved)),
     belowChoice: g ? undefined : lookupPanel(),
   });
 
@@ -53,11 +53,9 @@ function identityView(g: GuestSummary | null): { content: HTMLElement[]; footer:
   // Anyone who hasn't answered yet can look at the venue before deciding.
   if (canPreviewDetails(g)) content.push(previewDetailsLink());
   content.push(el("div", { class: "rsvp-form" }, form.fields));
-  // Once they've accepted, the venue page is a link away. Decliners get no extra link.
-  if (g?.attending === true) {
-    content.push(
-      el("div", { class: "stack" }, [ghostButton("See event details 📣", () => navigate(destinationForGuest(g)))]),
-    );
+  // Once they've answered, the venue page is a link away (decliners only if the host allows it).
+  if (g && hasRsvped(g) && attendingCanSeeDetails(g)) {
+    content.push(el("div", { class: "stack" }, [ghostButton("See event details 📣", () => navigate("details"))]));
   }
   content.push(privacyNote());
 
