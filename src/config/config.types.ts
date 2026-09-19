@@ -142,7 +142,6 @@ export interface DetectionConfig {
 
 export interface DangerZoneConfig {
   allowClearAll: boolean;
-  confirmPhrase: string;
   backupBeforeClear: boolean;
 }
 

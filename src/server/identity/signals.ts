@@ -1,4 +1,4 @@
-import { db, nowIso } from "../db";
+import { currentDb, nowIso } from "../db";
 import { ENV } from "../env";
 import { ipUaHash, sha256Hex } from "../hash";
 import { resolveGuest } from "../guests";
@@ -66,7 +66,7 @@ class CandidateAccumulator {
 }
 
 function rowsForKind(kind: SignalKind, valueHash: string): SignalRow[] {
-  return db
+  return currentDb()
     .query<SignalRow, [SignalKind, string]>(
       "SELECT guest_id, weight, last_seen FROM identity_signal WHERE kind = ? AND value_hash = ?",
     )
@@ -98,7 +98,7 @@ function addFingerprint(acc: CandidateAccumulator, hash: string | null): void {
 }
 
 function persistCollisionPenalty(hash: string): void {
-  db.prepare("UPDATE identity_signal SET weight = ? WHERE kind = 'fingerprint' AND value_hash = ?").run(
+  currentDb().prepare("UPDATE identity_signal SET weight = ? WHERE kind = 'fingerprint' AND value_hash = ?").run(
     FINGERPRINT_COLLISION_WEIGHT,
     hash,
   );
@@ -120,7 +120,7 @@ export function gatherCandidates(ctx: DeviceContext): Candidate[] {
 
 function upsertSignal(guestId: string, kind: SignalKind, valueHash: string, weight: number): void {
   const now = nowIso();
-  db.prepare(
+  currentDb().prepare(
     `INSERT INTO identity_signal (guest_id, kind, value_hash, weight, hits, first_seen, last_seen)
      VALUES (?,?,?,?,1,?,?)
      ON CONFLICT (kind, value_hash, guest_id)
@@ -146,7 +146,7 @@ export function repointDeviceSignals(fromGuestId: string, toGuestId: string, ctx
   );
   if (hashes.length === 0) return;
   const placeholders = hashes.map(() => "?").join(",");
-  db.prepare(
+  currentDb().prepare(
     `DELETE FROM identity_signal WHERE guest_id = ? AND value_hash IN (${placeholders})`,
   ).run(fromGuestId, ...hashes);
   writeThrough(toGuestId, ctx);
@@ -160,7 +160,7 @@ export function recordVisit(input: {
   ua: string;
   ipHash: string;
 }): void {
-  db.prepare(
+  currentDb().prepare(
     "INSERT INTO visit (guest_id, outcome, score, matched_kinds, ua, ip_hash, created_at) VALUES (?,?,?,?,?,?,?)",
   ).run(
     input.guestId,

@@ -156,23 +156,18 @@ function renderToolbar(): HTMLElement {
 
 function renderDangerZone(): HTMLElement | null {
   if (!data?.danger.allowClearAll) return null;
-  const phrase = h("input", { className: "filter", type: "text", placeholder: "Type the confirmation phrase" });
-  const btn = h("button", { className: "btn-danger", type: "button", disabled: true }, ["Delete everything"]);
-  phrase.addEventListener("input", () => {
-    btn.disabled = phrase.value.trim().length === 0;
-  });
-  btn.addEventListener("click", () => void clearAll(phrase.value));
+  const btn = h("button", { className: "btn-danger", type: "button" }, ["Delete everything"]);
+  btn.addEventListener("click", () => void clearAll());
   const c = data.counts;
   const summary = h("summary", {}, ["Danger zone"]);
   return h("details", { className: "danger" }, [
     summary,
     h("p", {}, [`This permanently deletes ${c.guests} guests, ${c.signals} identity signals, ${c.visits} visits and the full audit log.`]),
-    phrase,
     btn,
   ]);
 }
 
-async function clearAll(confirmPhrase: string): Promise<void> {
+async function clearAll(): Promise<void> {
   const c = data?.counts;
   const ok = window.confirm(
     `Really delete EVERYTHING?\n\n${c?.guests ?? 0} guests, ${c?.signals ?? 0} signals, ${c?.visits ?? 0} visits and the audit log will be destroyed. A backup is taken first.`,
@@ -181,8 +176,7 @@ async function clearAll(confirmPhrase: string): Promise<void> {
   const res = await fetch("/admin/api/clear-all", {
     method: "POST",
     credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ confirmPhrase }),
+    headers: { "X-Admin-Action": "clear-all" }, // see CLEAR_ALL_HEADER in server/admin/clear-all.ts
   });
   if (res.ok) {
     const body = (await res.json()) as { backup: string | null };

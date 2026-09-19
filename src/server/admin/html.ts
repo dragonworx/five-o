@@ -23,8 +23,7 @@ const ADMIN_CSS = `
   table.guests tr.superseded { opacity: 0.5; }
   details.danger { margin-top: 2rem; border: 1px solid #a63a2e; border-radius: 12px; padding: 1rem; }
   details.danger summary { color: #a63a2e; font-weight: 700; cursor: pointer; }
-  .btn-danger { margin-left: 0.75rem; padding: 0.5rem 1rem; background: #a63a2e; color: white; border: none; border-radius: 8px; cursor: pointer; }
-  .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-danger { padding: 0.5rem 1rem; background: #a63a2e; color: white; border: none; border-radius: 8px; cursor: pointer; }
 `;
 
 export function renderAdminShell(nonce: string): string {

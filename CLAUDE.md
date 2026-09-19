@@ -21,6 +21,7 @@ bun run docker:watch         # docker dev loop (bind-mounts src/ and public/, st
 ```
 
 - Dev needs no `.env`: missing `IP_PEPPER` / `COOKIE_SECRET` fall back to insecure defaults with a warning. With `NODE_ENV=production` (the Docker image) `src/server/env.ts` throws instead.
+- `?test=1` on the page URL runs that browser's API calls against a throwaway in-memory DB (`currentDb()` / `withTestDatabase` in `db.ts`, header set in `client/api.ts`, no env flag; the server echoes `x-test-mode` so the client shows its badge). Guest-facing data code must use `currentDb()`, not `db`; admin code keeps `db`.
 - To test `/admin` locally: `ADMIN_PASSWORD_HASH='<hash>' bun run dev` (single quotes; the hash contains `$`). In a compose `.env`, every `$` must be escaped as `$$`.
 - `bun --watch` does not reload on CSS edits (`src/server/styles.ts` reads the `.css` files once at boot). Restart the dev server after changing `src/styles/*`.
 - `bun run build:client` writes to the gitignored `public/dist/`, which nothing serves in normal operation. The server bundles the client and admin at boot (`Bun.build` in `src/server/index.ts` and `src/server/admin/index.ts`), so it is not needed. The Dockerfile header comment saying otherwise is stale.

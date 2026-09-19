@@ -2,11 +2,12 @@ import { join, normalize } from "node:path";
 import { CONFIG } from "../config/party.config";
 import { toPublicConfig } from "../config/public-config";
 import { renderShell } from "./html";
-import { db } from "./db"; // opens the database and runs migrations at boot
+import { db, withTestDatabase } from "./db"; // opens the database and runs migrations at boot
 import { getClientIp, getUserAgent } from "./http";
 import { dispatchApi } from "./routes/api";
 import { dispatchAdmin } from "./admin";
 import { APP_CSS } from "./styles";
+import { TEST_MODE_HEADER } from "../shared/test-mode";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Bun server. This is the runnable skeleton (Phase 1): it serves the config-
@@ -135,8 +136,13 @@ const server = Bun.serve({
 
     if (url.pathname.startsWith("/api/")) {
       const ctx = { ip: getClientIp(req, server), ua: getUserAgent(req) };
-      const res = await dispatchApi(url.pathname, req, ctx);
-      if (res) return res;
+      const testMode = req.headers.get(TEST_MODE_HEADER) === "1";
+      const dispatch = () => dispatchApi(url.pathname, req, ctx);
+      const res = await (testMode ? withTestDatabase(dispatch) : dispatch());
+      if (res) {
+        if (testMode) res.headers.set(TEST_MODE_HEADER, "1"); // lets the client show its badge
+        return res;
+      }
       return new Response("Not found", { status: 404 });
     }
 

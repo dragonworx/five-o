@@ -62,6 +62,7 @@
   --touch: 48px;
   --z-bar: 40;
   --z-confetti: 60;
+  --z-test-badge: 70;
 
   /* Shared easing + timing for UI state transitions */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);

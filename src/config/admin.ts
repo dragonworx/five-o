@@ -12,7 +12,6 @@ const admin: AdminConfig = {
   realm: "Five-O Admin",
   dangerZone: {
     allowClearAll: true, // set false once real RSVPs start arriving
-    confirmPhrase: "DELETE EVERYTHING",
     backupBeforeClear: true,
   },
 };

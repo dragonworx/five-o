@@ -97,7 +97,7 @@ function buildNoSection(state: FormState): HTMLElement {
   if (config().form.decline.askMessage) {
     const box = el("textarea", {
       class: "input textarea",
-      placeholder: "Explain yourself! (optional)",
+      placeholder: "Gimmi some sugar babe! (optional)",
       value: state.message,
       attrs: { "aria-label": "A note to the host", rows: "3", maxlength: "2000" },
     });

@@ -321,6 +321,36 @@ h3 { font-size: var(--step-0); font-weight: 700; text-transform: uppercase; lett
   from { opacity: 0; transform: translateY(10px); }
 }
 
+/* Dev-only "Test mode" label (see client/test-badge.ts): tiny, translucent and
+   click-through so it never gets in the way of the UI it sits above. */
+.test-badge {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + var(--space-2));
+  right: var(--space-2);
+  z-index: var(--z-test-badge);
+  padding: 0.15rem var(--space-2);
+  border: var(--outline-w) solid var(--border-strong);
+  border-radius: 999px;
+  background: #00ff22;
+  color: var(--text-muted);
+  font-size: var(--step--1);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  pointer-events: none;
+  user-select: none;
+}
+.test-badge::before {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 0.45em;
+  margin-right: 0.5em;
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: middle;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .screen > * { animation: rise var(--dur-slow) var(--ease-out) both; }
   .screen > *:nth-child(2) { animation-delay: 0.04s; }

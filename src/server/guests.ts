@@ -1,4 +1,4 @@
-import { db, nowIso } from "./db";
+import { currentDb, nowIso } from "./db";
 import { normaliseName } from "./hash";
 import { levenshtein } from "./text";
 import type { Diet } from "./schemas";
@@ -61,7 +61,7 @@ export function toSummary(row: GuestRow): GuestSummary {
 }
 
 export function getGuest(id: string): GuestRow | null {
-  return db.query<GuestRow, [string]>("SELECT * FROM guest WHERE id = ?").get(id) ?? null;
+  return currentDb().query<GuestRow, [string]>("SELECT * FROM guest WHERE id = ?").get(id) ?? null;
 }
 
 // Follow the merge chain to the surviving guest.
@@ -76,7 +76,7 @@ export function resolveGuest(id: string): GuestRow | null {
 }
 
 export function findByNormalisedName(normalised: string): GuestRow[] {
-  return db
+  return currentDb()
     .query<GuestRow, [string]>(
       "SELECT * FROM guest WHERE name_normalised = ? AND merged_into IS NULL",
     )
@@ -84,7 +84,7 @@ export function findByNormalisedName(normalised: string): GuestRow[] {
 }
 
 export function allActiveGuests(): GuestRow[] {
-  return db.query<GuestRow, []>("SELECT * FROM guest WHERE merged_into IS NULL").all();
+  return currentDb().query<GuestRow, []>("SELECT * FROM guest WHERE merged_into IS NULL").all();
 }
 
 // Exact normalised match plus a Levenshtein-≤2 fuzzy pass, capped.
@@ -109,7 +109,7 @@ export function redactedLabel(row: GuestRow): string {
 }
 
 function writeAudit(guestId: string, action: string, before: GuestRow | null, after: GuestRow | null): void {
-  db.prepare("INSERT INTO audit (guest_id, action, before_json, after_json, created_at) VALUES (?,?,?,?,?)").run(
+  currentDb().prepare("INSERT INTO audit (guest_id, action, before_json, after_json, created_at) VALUES (?,?,?,?,?)").run(
     guestId,
     action,
     before ? JSON.stringify(before) : null,
@@ -121,7 +121,7 @@ function writeAudit(guestId: string, action: string, before: GuestRow | null, af
 export function createGuest(fields: RsvpFields, overriddenFrom: string | null): GuestRow {
   const id = Bun.randomUUIDv7();
   const now = nowIso();
-  db.prepare(
+  currentDb().prepare(
     `INSERT INTO guest
       (id, name, name_normalised, attending, adults, kids, is_musician, diet, message, overridden_from, created_at, updated_at)
      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
@@ -148,7 +148,7 @@ export function createGuest(fields: RsvpFields, overriddenFrom: string | null): 
 export function updateGuestRsvp(id: string, fields: RsvpFields): GuestRow {
   const before = getGuest(id);
   if (!before) throw new Error(`guest ${id} not found`);
-  db.prepare(
+  currentDb().prepare(
     `UPDATE guest SET
       name = ?, name_normalised = ?, attending = ?, adults = ?, kids = ?,
       is_musician = ?, diet = ?, message = ?, updated_at = ?
@@ -173,7 +173,7 @@ export function updateGuestRsvp(id: string, fields: RsvpFields): GuestRow {
 
 export function markSlidesSeen(id: string): void {
   const now = nowIso();
-  db.prepare("UPDATE guest SET slides_seen_at = COALESCE(slides_seen_at, ?), updated_at = ? WHERE id = ?").run(
+  currentDb().prepare("UPDATE guest SET slides_seen_at = COALESCE(slides_seen_at, ?), updated_at = ? WHERE id = ?").run(
     now,
     now,
     id,
@@ -182,12 +182,12 @@ export function markSlidesSeen(id: string): void {
 
 export function markMerged(shellId: string, survivorId: string): void {
   const before = getGuest(shellId);
-  db.prepare("UPDATE guest SET merged_into = ?, updated_at = ? WHERE id = ?").run(survivorId, nowIso(), shellId);
+  currentDb().prepare("UPDATE guest SET merged_into = ?, updated_at = ? WHERE id = ?").run(survivorId, nowIso(), shellId);
   writeAudit(shellId, "merged", before, getGuest(shellId));
 }
 
 export function deleteGuest(id: string): void {
   const before = getGuest(id);
-  db.prepare("DELETE FROM guest WHERE id = ?").run(id); // cascades to identity_signal
+  currentDb().prepare("DELETE FROM guest WHERE id = ?").run(id); // cascades to identity_signal
   writeAudit(id, "delete", before, null);
 }

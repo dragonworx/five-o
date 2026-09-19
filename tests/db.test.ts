@@ -6,8 +6,8 @@ import { rmSync } from "node:fs";
 const DB_PATH = `/tmp/five-o-test-${crypto.randomUUID()}.sqlite`;
 process.env.DB_PATH = DB_PATH;
 
-const { db } = await import("../src/server/db");
-const { createGuest, updateGuestRsvp, markMerged } = await import("../src/server/guests");
+const { db, withTestDatabase } = await import("../src/server/db");
+const { createGuest, resolveGuest, updateGuestRsvp, markMerged } = await import("../src/server/guests");
 const { getSummary } = await import("../src/server/admin/queries");
 
 type Fields = Parameters<typeof createGuest>[0];
@@ -98,5 +98,37 @@ describe("headcount aggregates", () => {
     const s = getSummary();
     expect(s.totalHeads).toBe(4); // ghost's 10 heads excluded
     expect(s.comingCount).toBe(2);
+  });
+});
+
+describe("test mode database", () => {
+  const realGuestCount = () => db.query<{ n: number }, []>("SELECT COUNT(*) AS n FROM guest").get()?.n ?? 0;
+  beforeEach(() => db.run("DELETE FROM guest"));
+
+  test("writes inside withTestDatabase never reach the real database", () => {
+    const guest = withTestDatabase(() => createGuest(accept("Ada", 2, 0, null), null));
+    expect(realGuestCount()).toBe(0);
+    expect(resolveGuest(guest.id)).toBeNull();
+  });
+
+  test("the flow still works: a test guest is readable by later test requests", () => {
+    const guest = withTestDatabase(() => createGuest(accept("Ada", 2, 0, null), null));
+    expect(withTestDatabase(() => resolveGuest(guest.id))?.name).toBe("Ada");
+  });
+
+  test("the test database stays selected across awaits", async () => {
+    const found = await withTestDatabase(async () => {
+      await Bun.sleep(1);
+      const created = createGuest(accept("Grace", 1, 0, null), null);
+      await Bun.sleep(1);
+      return resolveGuest(created.id);
+    });
+    expect(found?.name).toBe("Grace");
+    expect(realGuestCount()).toBe(0);
+  });
+
+  test("requests outside test mode still write to the real database", () => {
+    createGuest(accept("Real", 1, 0, null), null);
+    expect(realGuestCount()).toBe(1);
   });
 });

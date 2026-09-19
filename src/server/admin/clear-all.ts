@@ -1,17 +1,21 @@
 import { appendFileSync, mkdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { z } from "zod";
 import { CONFIG } from "../../config/party.config";
 import { db, nowIso } from "../db";
 import { ENV } from "../env";
 import { sha256Hex } from "../hash";
-import { badRequest, forbidden, json } from "../http";
+import { forbidden, json } from "../http";
 
-// The destructive wipe. Four independent gates (config flag, typed phrase,
-// server re-verification, automatic backup-first) because a mis-click here is
-// unrecoverable in a way nothing else in this app is.
+// The destructive wipe. Independent gates (config flag, a custom request header
+// that a cross-site form can't send, the admin UI's confirm dialog, and an
+// automatic backup-first) because a mis-click here is unrecoverable in a way
+// nothing else in this app is.
 
-const clearSchema = z.object({ confirmPhrase: z.string() });
+// Basic-auth credentials are re-sent by the browser on cross-site requests, and
+// nothing else in the admin checks origin. A custom header forces a CORS
+// preflight this server never answers, so only the admin page itself can set it.
+export const CLEAR_ALL_HEADER = "x-admin-action";
+export const CLEAR_ALL_HEADER_VALUE = "clear-all";
 
 export interface DestroyedCounts {
   guests: number;
@@ -51,15 +55,10 @@ function logAdminAction(ip: string, destroyed: DestroyedCounts, backup: string |
   appendFileSync(join(ENV.backupsDir, "admin_action.log"), `${JSON.stringify(entry)}\n`);
 }
 
-export async function handleClearAll(req: Request, ip: string): Promise<Response> {
+export function handleClearAll(req: Request, ip: string): Response {
   if (!CONFIG.admin.dangerZone.allowClearAll) return forbidden("Clear-all is disabled");
 
-  const raw = await req.json().catch(() => null);
-  const parsed = clearSchema.safeParse(raw);
-  if (!parsed.success) return badRequest("Missing confirmation");
-  if (parsed.data.confirmPhrase !== CONFIG.admin.dangerZone.confirmPhrase) {
-    return badRequest("Confirmation phrase does not match");
-  }
+  if (req.headers.get(CLEAR_ALL_HEADER) !== CLEAR_ALL_HEADER_VALUE) return forbidden("Missing admin action header");
 
   const destroyed = countAll();
 

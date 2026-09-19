@@ -1,4 +1,5 @@
 import { Database } from "bun:sqlite";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { ENV } from "./env";
@@ -20,7 +21,7 @@ function openDatabase(): Database {
 
 export const db = openDatabase();
 
-function runMigrations(): void {
+function runMigrations(db: Database): void {
   db.exec(`CREATE TABLE IF NOT EXISTS _migration (
     name TEXT PRIMARY KEY,
     applied_at TEXT NOT NULL
@@ -46,7 +47,34 @@ function runMigrations(): void {
   }
 }
 
-runMigrations();
+runMigrations(db);
+
+// Test mode (dev only): requests tagged with ?test=1 run against a throwaway
+// in-memory database, so the whole flow works but the real file never grows.
+// Only the guest-facing data layer (guests.ts, identity/signals.ts) goes through
+// currentDb(); admin code keeps using `db`, so it always sees the real data.
+const requestDb = new AsyncLocalStorage<Database>();
+let testDb: Database | null = null;
+
+function openTestDatabase(): Database {
+  if (!testDb) {
+    testDb = new Database(":memory:", { strict: true });
+    testDb.exec("PRAGMA foreign_keys = ON;");
+    runMigrations(testDb);
+    console.log("[db] test mode: using an in-memory database, the real database is untouched");
+  }
+  return testDb;
+}
+
+export function currentDb(): Database {
+  return requestDb.getStore() ?? db;
+}
+
+// Runs `fn` (and everything it awaits) against the shared in-memory test
+// database. State persists across requests until the server restarts.
+export function withTestDatabase<T>(fn: () => T): T {
+  return requestDb.run(openTestDatabase(), fn);
+}
 
 export function nowIso(): string {
   return new Date().toISOString();

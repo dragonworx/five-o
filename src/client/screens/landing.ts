@@ -20,7 +20,7 @@ import {
 } from "../store";
 
 const PRIVACY_NOTE =
-  "This site remembers your device so you don’t have to re-type your details. Nothing is shared.";
+  "";
 
 async function claimIdentity(guestId: string, claimToken: string): Promise<void> {
   const res = await claim(guestId, claimToken, signals());

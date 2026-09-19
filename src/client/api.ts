@@ -1,4 +1,6 @@
 import type { PublicConfig } from "../config/public-config";
+import { TEST_MODE_HEADER, TEST_MODE_QUERY_PARAM } from "../shared/test-mode";
+import { showTestBadge } from "./test-badge";
 
 // Client-side mirror of the server's guest summary and endpoint response shapes.
 // Redeclared here (rather than imported from the server) so the client bundle
@@ -63,13 +65,27 @@ export interface RsvpPayload extends DeviceSignals {
   overriddenFrom?: string;
 }
 
+// ?test=1 on the page URL tags every request so a dev server keeps the run out
+// of the real database. Read once at load; the hash router never drops the query.
+const TEST_MODE = new URLSearchParams(window.location.search).get(TEST_MODE_QUERY_PARAM) === "1";
+
+function headers(extra: Record<string, string> = {}): Record<string, string> {
+  return TEST_MODE ? { ...extra, [TEST_MODE_HEADER]: "1" } : extra;
+}
+
+// The server echoes the header only when it really switched to the test database.
+function noteTestMode(res: Response): void {
+  if (res.headers.get(TEST_MODE_HEADER) === "1") showTestBadge();
+}
+
 async function postJson<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(path, {
     method: "POST",
     credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
+    headers: headers({ "Content-Type": "application/json" }),
     body: JSON.stringify(body),
   });
+  noteTestMode(res);
   if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
   return (await res.json()) as T;
 }
@@ -105,12 +121,13 @@ export function slidesComplete(): Promise<{ ok: boolean }> {
 }
 
 export async function getMe(): Promise<GuestSummary | null> {
-  const res = await fetch("/api/me", { credentials: "same-origin" });
+  const res = await fetch("/api/me", { credentials: "same-origin", headers: headers() });
+  noteTestMode(res);
   if (!res.ok) return null;
   const data = (await res.json()) as { guest: GuestSummary | null };
   return data.guest;
 }
 
 export async function deleteMe(): Promise<void> {
-  await fetch("/api/me", { method: "DELETE", credentials: "same-origin" });
+  await fetch("/api/me", { method: "DELETE", credentials: "same-origin", headers: headers() });
 }

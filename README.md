@@ -34,6 +34,10 @@ ADMIN_PASSWORD_HASH='<hash>' bun run dev
 
 Get a hash with `bun run hash-admin-password`.
 
+### Test mode
+
+Open the app with `?test=1` (e.g. `http://localhost:3000/?test=1`) and the whole flow works, but nothing is written to the SQLite file. The client tags its API calls and the server runs them against an in-memory database that lives until the server restarts, so you can RSVP, reload and be recognised, then start clean. A small "Test mode · not saved" label confirms it is active. It works in any environment (no flag), so keep `?test=1` out of real invitation links. The admin console always shows the real database.
+
 ## Production (Docker)
 
 The image copies in a host-installed `node_modules` rather than installing inside the container (see the `Dockerfile` header for why).
