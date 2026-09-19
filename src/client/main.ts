@@ -34,8 +34,12 @@ async function boot(): Promise<void> {
   const app = document.getElementById("app");
   if (!app) return;
 
-  const cfg = await fetchConfig();
-  const [tokens, fingerprint] = await Promise.all([getVisitorTokens(), getDeviceFingerprint()]);
+  // Independent, so run together: the fingerprint is the slow one.
+  const [cfg, tokens, fingerprint] = await Promise.all([
+    fetchConfig(),
+    getVisitorTokens(),
+    getDeviceFingerprint(),
+  ]);
   const deviceSignals = { ...tokens, fingerprint };
 
   initStore({

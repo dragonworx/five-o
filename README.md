@@ -15,7 +15,7 @@ The server bundles the client and admin JS itself at boot, so there is no separa
 | `ADMIN_PASSWORD_HASH` | optional; without it admin login won't work (config has a placeholder hash) | **required** to use `/admin` |
 | DB / backups | `./data/five-o.sqlite`, `./backups` | `./data` on host, mounted at `/data` |
 | Reload | `--watch` restarts on any change | rebuild image (or `docker:watch`, below) |
-| URL | http://localhost:3000 | http://127.0.0.1:3000, front with Caddy |
+| URL | http://localhost:3000 | http://127.0.0.1:3000, served publicly by the host's Caddy |
 
 Health check: `/healthz`. Admin: `/admin`.
 
@@ -76,12 +76,20 @@ The image copies in `src/`, `public/` and `scripts/` at build time, so these all
 | --- | --- |
 | Event details, copy, form, theme | `src/config/*.ts` (one file per section; `party.config.ts` only assembles them) |
 | Slide captions and order | `src/config/slides.ts` |
-| Slide images | `public/img/slides/` |
+| Slide images | `public/img/slides/`, then `bun run slides` (normalises the JPEGs and writes the `.webp` copies the server prefers) |
 | CSS | `src/styles/*.css` |
 
 None of it is env-driven. The RSVP database is in the `/data` volume, so a refresh leaves it untouched.
 
-`server.trustProxy` is `true`, so the client IP comes from proxy headers. Keep the port bound to loopback (as compose does) and put Caddy in front (`deploy/Caddyfile`, replace `fifty.example.com`).
+### HTTPS (Caddy)
+
+The app is served publicly by the Caddy already running on the host. `deploy/Caddyfile` is a site block to paste into the global Caddyfile (usually `/etc/caddy/Caddyfile`): replace `fifty.example.com` with the real hostname, then `sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy`. It proxies to `127.0.0.1:3000`, compresses responses, caps request bodies at 64 KB and adds HSTS.
+
+HTTPS is required: in production the guest cookie is `Secure`, so over plain http returning guests aren't recognised and edits create duplicates. The hostname's DNS must point at the server, with ports 80 and 443 open, for Caddy to get the certificate.
+
+`server.trustProxy` is `true`, so the client IP comes from `X-Forwarded-For`, which Caddy overwrites with the real peer address. Keep the app bound to loopback (as compose does). Don't put a CDN or another proxy in front of Caddy without setting `trusted_proxies`, or all guests will share one IP and one rate-limit bucket.
+
+API routes are rate-limited per IP (limits in `src/server/routes/api.ts`, held in memory, reset on restart).
 
 ### Docker dev loop
 
@@ -103,7 +111,7 @@ Only the systemd deploy has hourly automation (`deploy/five-o-backup.{service,ti
 
 ## Without Docker in production
 
-`deploy/five-o.service` (systemd, env from `/etc/five-o.env`, i.e. `.env.example` as-is) plus `deploy/Caddyfile`.
+`deploy/five-o.service` (systemd, env from `/etc/five-o.env`, i.e. `.env.example` as-is) plus the same `deploy/Caddyfile` site block.
 
 ## Checks
 

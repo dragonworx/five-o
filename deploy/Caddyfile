@@ -1,7 +1,31 @@
+# Five-O site block for the host's Caddy. Paste it into the global Caddyfile
+# (usually /etc/caddy/Caddyfile), replace the hostname, then:
+#   sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy
+#
+# Caddy gets and renews the HTTPS certificate on its own: the hostname's DNS
+# must point at this server and ports 80 and 443 must be open. HTTPS is not
+# optional, because in production the guest cookie is Secure.
+#
+# The app listens on 127.0.0.1:3000 (docker compose binds it to loopback only).
+#
+# Client IPs: the app trusts X-Forwarded-For (server.trustProxy). Caddy doesn't
+# trust an incoming X-Forwarded-For from the internet and overwrites it with the
+# real peer address, so visitors can't spoof their IP. Don't put a CDN or
+# another proxy in front of Caddy without adding `trusted_proxies`, or every
+# guest will share that proxy's IP and its rate-limit bucket.
+
 fifty.example.com {
 	encode zstd gzip
-	reverse_proxy localhost:3000
+
+	# The app's largest request is an RSVP of a few KB.
+	request_body {
+		max_size 64KB
+	}
+
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
 	}
+
+	reverse_proxy 127.0.0.1:3000
 }

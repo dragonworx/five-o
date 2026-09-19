@@ -16,14 +16,16 @@ import { TEST_MODE_HEADER } from "../shared/test-mode";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PUBLIC_DIR = join(import.meta.dir, "..", "..", "public");
+const IS_PROD = process.env.NODE_ENV === "production";
 
 // Build the client bundle once at boot; --watch rebuilds on change in dev.
 async function buildClient(): Promise<string> {
   const result = await Bun.build({
     entrypoints: [join(import.meta.dir, "..", "client", "main.ts")],
     target: "browser",
-    minify: process.env.NODE_ENV === "production",
-    sourcemap: "inline",
+    minify: IS_PROD,
+    // An inline map is ~6x the size of the code itself; only worth it in dev.
+    sourcemap: IS_PROD ? "none" : "inline",
   });
   if (!result.success) {
     console.error("Client build failed:", result.logs);
@@ -34,6 +36,27 @@ async function buildClient(): Promise<string> {
 }
 
 const clientJs = await buildClient();
+
+// The shell (no-store) links the bundle and stylesheet by content hash, so the
+// browser caches them forever and a deploy with new content changes the URL.
+const CLIENT_VERSION = Bun.hash(clientJs).toString(36);
+const CSS_VERSION = Bun.hash(APP_CSS).toString(36);
+const SHELL_ASSETS = {
+  script: `/client.js?v=${CLIENT_VERSION}`,
+  stylesheet: `/app.css?v=${CSS_VERSION}`,
+};
+
+// Immutable only when the request names the current version; a stale or missing
+// ?v= (an old tab after a deploy) must not pin whatever is served now.
+function versionedAsset(req: Request, body: string, contentType: string, version: string): Response {
+  const current = new URL(req.url).searchParams.get("v") === version;
+  return new Response(body, {
+    headers: {
+      "Content-Type": contentType,
+      "Cache-Control": current ? "public, max-age=31536000, immutable" : "no-cache",
+    },
+  });
+}
 
 function securityHeaders(nonce: string): Record<string, string> {
   const csp = [
@@ -72,47 +95,56 @@ const CONTENT_TYPES: Record<string, string> = {
   ".ico": "image/x-icon",
 };
 
+const JPEG_EXT = /\.jpe?g$/i;
+
+// A JPEG with a .webp sibling (written by `bun run slides`) is swapped for the
+// WebP when the browser advertises support. Vary keeps caches per format.
+async function webpSibling(req: Request, filePath: string): Promise<string | null> {
+  if (!JPEG_EXT.test(filePath)) return null;
+  if (!(req.headers.get("accept") ?? "").includes("image/webp")) return null;
+  const webpPath = filePath.replace(JPEG_EXT, ".webp");
+  return (await Bun.file(webpPath).exists()) ? webpPath : null;
+}
+
 // Serve a file from /public with a path-traversal guard.
-async function serveStatic(pathname: string): Promise<Response> {
+async function serveStatic(req: Request, pathname: string): Promise<Response> {
   const rel = normalize(decodeURIComponent(pathname)).replace(/^(\.\.[/\\])+/, "");
   const filePath = join(PUBLIC_DIR, rel);
   if (!filePath.startsWith(PUBLIC_DIR)) {
     return new Response("Forbidden", { status: 403 });
   }
-  const file = Bun.file(filePath);
-  if (!(await file.exists())) {
+  if (!(await Bun.file(filePath).exists())) {
     return new Response("Not found", { status: 404 });
   }
-  const ext = filePath.slice(filePath.lastIndexOf(".")).toLowerCase();
+  const webpPath = await webpSibling(req, filePath);
+  const servedPath = webpPath ?? filePath;
+  const ext = servedPath.slice(servedPath.lastIndexOf(".")).toLowerCase();
   const type = CONTENT_TYPES[ext] ?? "application/octet-stream";
   const immutable = pathname.startsWith("/dist/");
-  return new Response(file, {
-    headers: {
-      "Content-Type": type,
-      "Cache-Control": immutable ? "public, max-age=31536000, immutable" : "public, max-age=3600",
-    },
-  });
+  const headers: Record<string, string> = {
+    "Content-Type": type,
+    "Cache-Control": immutable ? "public, max-age=31536000, immutable" : "public, max-age=3600",
+  };
+  if (JPEG_EXT.test(filePath)) headers.Vary = "Accept";
+  return new Response(Bun.file(servedPath), { headers });
 }
 
 const server = Bun.serve({
   port: CONFIG.server.port,
+  // The largest legitimate request (an RSVP) is a few KB; the default is 128 MB.
+  maxRequestBodySize: 64 * 1024,
   routes: {
     "/": (req: Request) => {
       const nonce = crypto.randomUUID().replaceAll("-", "");
-      return new Response(renderShell(nonce), {
+      return new Response(renderShell(nonce, SHELL_ASSETS), {
         headers: noStore({ "Content-Type": "text/html; charset=utf-8", ...securityHeaders(nonce) }),
       });
     },
 
-    "/client.js": () =>
-      new Response(clientJs, {
-        headers: { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-store" },
-      }),
+    "/client.js": (req: Request) =>
+      versionedAsset(req, clientJs, "text/javascript; charset=utf-8", CLIENT_VERSION),
 
-    "/app.css": () =>
-      new Response(APP_CSS, {
-        headers: { "Content-Type": "text/css; charset=utf-8", "Cache-Control": "no-store" },
-      }),
+    "/app.css": (req: Request) => versionedAsset(req, APP_CSS, "text/css; charset=utf-8", CSS_VERSION),
 
     "/api/config": () =>
       Response.json(toPublicConfig(CONFIG), { headers: noStore() }),
@@ -150,7 +182,7 @@ const server = Bun.serve({
     if (req.method !== "GET" && req.method !== "HEAD") {
       return new Response("Method not allowed", { status: 405 });
     }
-    return serveStatic(url.pathname);
+    return serveStatic(req, url.pathname);
   },
 });
 

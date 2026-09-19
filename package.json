@@ -27,7 +27,6 @@
   },
   "dependencies": {
     "@thumbmarkjs/thumbmarkjs": "^1.11.0",
-    "motion": "^13.2.0",
     "zod": "^4.5.4"
   }
 }

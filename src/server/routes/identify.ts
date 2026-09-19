@@ -9,8 +9,7 @@ import {
   type GuestRow,
 } from "../guests";
 import { normaliseName } from "../hash";
-import { badRequest, forbidden, json, notFound, parseJson, tooManyRequests, type ApiContext } from "../http";
-import { rateLimit } from "../ratelimit";
+import { badRequest, forbidden, json, notFound, parseJson, type ApiContext } from "../http";
 import {
   claimRequestSchema,
   identifyRequestSchema,
@@ -151,10 +150,8 @@ export async function handleOverride(req: Request): Promise<Response> {
   return json({ outcome: "new", previousGuestId }, { cookie: clearCookieHeader() });
 }
 
-export async function handleLookup(req: Request, ctx: ApiContext): Promise<Response> {
-  const rl = rateLimit(`lookup:${ctx.ip}`, 8, 10 * 60 * 1000);
-  if (!rl.ok) return tooManyRequests(rl.retryAfterSeconds);
-
+// Rate-limited in routes/api.ts (tightly, since it lets a stranger guess names).
+export async function handleLookup(req: Request): Promise<Response> {
   const body = await parseJson(req, lookupRequestSchema);
   if (!body.ok) return badRequest(body.error);
 

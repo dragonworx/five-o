@@ -104,8 +104,8 @@ function lookupPanel(): HTMLElement {
   const input = el("input", {
     class: "input",
     type: "text",
-    placeholder: "Your name",
-    attrs: { "aria-label": "Your name", autocomplete: "name" },
+    placeholder: "Your real full name",
+    attrs: { "aria-label": "Your real full name", autocomplete: "name" },
   });
   const results = el("div", { class: "lookup-results", attrs: { "aria-live": "polite" } });
   const details = el("details", { class: "lookup" }, [

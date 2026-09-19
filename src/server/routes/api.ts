@@ -1,4 +1,5 @@
-import type { ApiContext } from "../http";
+import { tooManyRequests, type ApiContext } from "../http";
+import { rateLimit } from "../ratelimit";
 import {
   handleClaim,
   handleDeleteMe,
@@ -11,14 +12,28 @@ import { handleRsvp, handleSlidesComplete } from "./rsvp";
 
 type Handler = (req: Request, ctx: ApiContext) => Response | Promise<Response>;
 
-const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
-  "/api/identify": { POST: handleIdentify },
-  "/api/claim": { POST: handleClaim },
-  "/api/override": { POST: (req) => handleOverride(req) },
-  "/api/lookup": { POST: handleLookup },
-  "/api/rsvp": { POST: handleRsvp },
-  "/api/slides-complete": { POST: (req) => handleSlidesComplete(req) },
-  "/api/me": { GET: (req) => handleMe(req), DELETE: (req) => handleDeleteMe(req) },
+interface Route {
+  handler: Handler;
+  /** Requests allowed per client IP per window. */
+  perIp: number;
+}
+
+// Every route is rate-limited per IP so a script can't flood the guest list (or
+// the in-memory test database). Limits are generous because a mobile carrier
+// can put many guests behind one IP; a real guest makes a handful of calls.
+const WINDOW_MS = 10 * 60 * 1000;
+
+const ROUTES: Record<string, Partial<Record<string, Route>>> = {
+  "/api/identify": { POST: { handler: handleIdentify, perIp: 60 } },
+  "/api/claim": { POST: { handler: handleClaim, perIp: 20 } },
+  "/api/override": { POST: { handler: (req) => handleOverride(req), perIp: 20 } },
+  "/api/lookup": { POST: { handler: handleLookup, perIp: 8 } }, // name guessing
+  "/api/rsvp": { POST: { handler: handleRsvp, perIp: 20 } },
+  "/api/slides-complete": { POST: { handler: (req) => handleSlidesComplete(req), perIp: 30 } },
+  "/api/me": {
+    GET: { handler: (req) => handleMe(req), perIp: 60 },
+    DELETE: { handler: (req) => handleDeleteMe(req), perIp: 10 },
+  },
 };
 
 // Returns null when the path is not a dynamic API route (so the caller can fall
@@ -27,7 +42,9 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
 export function dispatchApi(pathname: string, req: Request, ctx: ApiContext): Response | Promise<Response> | null {
   const methods = ROUTES[pathname];
   if (!methods) return null;
-  const handler = methods[req.method];
-  if (!handler) return new Response("Method not allowed", { status: 405 });
-  return handler(req, ctx);
+  const route = methods[req.method];
+  if (!route) return new Response("Method not allowed", { status: 405 });
+  const rl = rateLimit(`${req.method} ${pathname}:${ctx.ip}`, route.perIp, WINDOW_MS);
+  if (!rl.ok) return tooManyRequests(rl.retryAfterSeconds);
+  return route.handler(req, ctx);
 }

@@ -1,4 +1,4 @@
-import { readdirSync, renameSync, rmSync, statSync } from "node:fs";
+import { existsSync, readdirSync, renameSync, rmSync, statSync } from "node:fs";
 import { join, parse, resolve } from "node:path";
 
 // Normalise every image in public/img/slides to one baseline so slides load fast
@@ -6,6 +6,9 @@ import { join, parse, resolve } from "node:path";
 // it is cover-cropped to 3:4 and downsized in place. Images that already conform
 // are left untouched (no re-encode, so no generation loss). Requires ImageMagick 7
 // (`magick`). Never upscales; a source smaller than the baseline keeps its size.
+//
+// Each JPEG also gets a WebP sibling (~30% smaller). The config keeps pointing at
+// the .jpeg; the server sends the .webp instead to browsers that accept it.
 //
 // Why 896x1195: the slide stage is 3:4 on mobile (~360-400 CSS px wide, so ~2.3x on
 // a 3x phone) and 16:9 on desktop (object-fit: cover crops the same image, ~700
@@ -20,6 +23,7 @@ const SLIDES_DIR = dirArg ? resolve(dirArg) : join(import.meta.dir, "..", "publi
 
 const BASELINE = { width: 896, height: 1195, quality: 78 } as const;
 const OUTPUT_EXT = ".jpeg";
+const WEBP_EXT = ".webp";
 const INPUT_EXT = /\.(jpe?g|png|heic|heif|tiff?)$/i;
 const SUBSAMPLING_420 = "2x2,1x1,1x1";
 const UPRIGHT = new Set(["Undefined", "TopLeft"]);
@@ -132,6 +136,12 @@ function convert(src: string, tmp: string): { width: number; height: number } {
   return size;
 }
 
+/** Encode the WebP sibling from the normalised JPEG (same quality setting). */
+function writeWebp(jpeg: string, webp: string, tmp: string): void {
+  magick([jpeg, "-quality", String(BASELINE.quality), "-define", "webp:method=6", `WEBP:${tmp}`]);
+  renameSync(tmp, webp);
+}
+
 function kb(bytes: number): string {
   return bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
 }
@@ -204,4 +214,42 @@ for (const file of files) {
 
 const verb = checkOnly ? "need converting" : "converted";
 console.log(`[slides] ${converted} ${verb}, ${untouched} already conform${failed ? `, ${failed} failed` : ""}`);
-if (failed > 0 || (checkOnly && converted > 0)) process.exit(1);
+
+// WebP siblings: (re)build any that are missing or older than their JPEG, and
+// drop any whose JPEG is gone so a removed slide can't linger.
+let webpNeeded = 0;
+const jpegNames = new Set<string>();
+for (const file of readdirSync(SLIDES_DIR).filter((f) => !f.startsWith(".") && f.endsWith(OUTPUT_EXT)).sort()) {
+  const { name } = parse(file);
+  jpegNames.add(name);
+  const jpeg = join(SLIDES_DIR, file);
+  const webp = join(SLIDES_DIR, `${name}${WEBP_EXT}`);
+  if (existsSync(webp) && statSync(webp).mtimeMs >= statSync(jpeg).mtimeMs) continue;
+  webpNeeded += 1;
+  if (checkOnly) {
+    console.log(`  needs     ${name}${WEBP_EXT}`);
+    continue;
+  }
+  const tmp = join(SLIDES_DIR, `.${name}.webp-tmp`);
+  try {
+    writeWebp(jpeg, webp, tmp);
+    console.log(`  webp      ${name}${WEBP_EXT}  ${kb(statSync(jpeg).size)} → ${kb(statSync(webp).size)}`);
+  } catch (err) {
+    failed += 1;
+    console.error(`  failed    ${name}${WEBP_EXT}: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    rmSync(tmp, { force: true });
+  }
+}
+for (const file of readdirSync(SLIDES_DIR).filter((f) => f.endsWith(WEBP_EXT))) {
+  if (jpegNames.has(parse(file).name)) continue;
+  webpNeeded += 1;
+  if (checkOnly) console.log(`  orphan    ${file}`);
+  else {
+    rmSync(join(SLIDES_DIR, file));
+    console.log(`  removed   ${file} (no matching JPEG)`);
+  }
+}
+console.log(`[slides] webp: ${webpNeeded} ${checkOnly ? "out of date" : "updated"}`);
+
+if (failed > 0 || (checkOnly && (converted > 0 || webpNeeded > 0))) process.exit(1);

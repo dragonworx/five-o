@@ -14,9 +14,9 @@ bun test tests/score.test.ts # one file
 bun test -t "decline"        # tests matching a name
 bun run typecheck            # tsc --noEmit (covers src, scripts, tests)
 bun run check:contrast       # WCAG AA check of the palette in party.config.ts; exits 1 on failure
-bun run slides               # ImageMagick: normalise public/img/slides to 896×1195 q78 (--check = report only)
+bun run slides               # ImageMagick: normalise public/img/slides to 896×1195 q78 + .webp siblings (--check = report only)
 bun run hash-admin-password  # argon2id hash for ADMIN_PASSWORD_HASH
-bun run docker:refresh       # production: docker compose build && up -d
+bun run docker:refresh       # production: docker compose build && up -d (host Caddy fronts it; site block in deploy/Caddyfile)
 bun run docker:watch         # docker dev loop (bind-mounts src/ and public/, still needs .env)
 ```
 
@@ -33,7 +33,7 @@ bun run docker:watch         # docker dev loop (bind-mounts src/ and public/, st
 - `public-config.ts` builds the client-visible subset (`/api/config`) by explicit whitelist. `admin`, `detection` and `server` must never be added to it.
 - `css-vars.ts` turns the theme into `:root` CSS custom properties inlined into the HTML shell (`server/html.ts`), which is served with a per-request CSP nonce.
 
-**Server** (`src/server/index.ts`): one `Bun.serve`. It serves the shell at `/`, the in-memory client bundle at `/client.js`, the concatenated CSS at `/app.css`, `/api/config`, `/healthz`, then falls back to `/admin*` → `admin/`, `/api/*` → `routes/api.ts` (a method+path table), else static files from `public/`. The SQLite connection (`db.ts`) opens and runs the forward-only `migrations/*.sql` at import time, so importing `db.ts` has side effects.
+**Server** (`src/server/index.ts`): one `Bun.serve`. It serves the shell at `/`, the in-memory client bundle at `/client.js`, the concatenated CSS at `/app.css` (both linked with a `?v=<content hash>` and cached immutably; no sourcemap in production), `/api/config`, `/healthz`, then falls back to `/admin*` → `admin/`, `/api/*` → `routes/api.ts` (a method+path table), else static files from `public/` (a `.jpeg` with a `.webp` sibling is served as WebP when accepted). Every `/api/*` route has a per-IP rate limit in the `routes/api.ts` table. The SQLite connection (`db.ts`) opens and runs the forward-only `migrations/*.sql` at import time, so importing `db.ts` has side effects.
 
 **Client** (`src/client`): vanilla TS SPA with a small hash router (`#/landing|slides|details|farewell`). `main.ts` boots by fetching config, collecting device signals, calling `/api/identify`, and storing the outcome in `store.ts`. The journey is landing (identity + RSVP form, `rsvp-form.ts`) → slides → details. Screen order and gating live in `flow.ts` (a first RSVP goes through the slides, an edit skips them, only guests who have answered get the details link, and decliners only see the venue if `form.decline.showDetails` is set). `src/admin` is a separate bundle for the admin console.
 

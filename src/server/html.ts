@@ -34,7 +34,12 @@ a { color: var(--accent); }
 :root[data-theme="light"] body { color: var(--ink); background: var(--paper); }
 `;
 
-export function renderShell(nonce: string): string {
+export interface ShellAssets {
+  script: string;
+  stylesheet: string;
+}
+
+export function renderShell(nonce: string, assets: ShellAssets): string {
   const cssVars = buildCssVariables(CONFIG.theme);
   const fontFaces = buildFontFaces(CONFIG.theme);
   const fontPreloads = fontFiles(CONFIG.theme)
@@ -54,13 +59,13 @@ ${fontFaces}
 ${cssVars}
 ${BASE_CSS}
   </style>
-  <link rel="stylesheet" href="/app.css" />
+  <link rel="stylesheet" href="${assets.stylesheet}" />
 </head>
 <body>
   <main id="app" aria-live="polite">
     <noscript>This RSVP needs JavaScript enabled.</noscript>
   </main>
-  <script type="module" src="/client.js" nonce="${nonce}"></script>
+  <script type="module" src="${assets.script}" nonce="${nonce}"></script>
 </body>
 </html>`;
 }

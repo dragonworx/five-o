@@ -1,8 +1,9 @@
-import { animate } from "motion";
+// Motion helpers on the native Web Animations API (element.animate), so no
+// animation library ships in the bundle. Everything here is a no-op under
+// prefers-reduced-motion, and page transitions use the View Transitions API
+// where available, falling back to a short cross-fade.
 
-// Motion helpers. Everything here is a no-op under prefers-reduced-motion, and
-// page transitions use the View Transitions API where available, falling back to
-// a Motion spring cross-fade.
+const EASE_OUT = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 export function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -25,20 +26,19 @@ export function transitionTo(render: () => void): void {
   render();
   const app = document.getElementById("app");
   if (app) {
-    animate(
-      app,
+    app.animate(
       { opacity: [0, 1], transform: ["translateY(8px)", "translateY(0)"] },
-      { duration: 0.32 },
+      { duration: 320, easing: EASE_OUT },
     );
   }
 }
 
+/** `delay` is in seconds. The node stays hidden until its delay has elapsed. */
 export function springIn(node: Element, delay = 0): void {
   if (prefersReducedMotion()) return;
-  animate(
-    node,
+  node.animate(
     { opacity: [0, 1], transform: ["translateY(10px)", "translateY(0)"] },
-    { duration: 0.42, delay },
+    { duration: 420, delay: delay * 1000, easing: EASE_OUT, fill: "backwards" },
   );
 }
 
@@ -52,8 +52,10 @@ export function collapse(node: HTMLElement, open: boolean): void {
   }
   node.hidden = false;
   node.style.overflow = "hidden";
-  const target = open ? node.scrollHeight : 0;
-  animate(node, { height: [`${node.getBoundingClientRect().height}px`, `${target}px`] }, { duration: 0.34 });
+  const from = `${node.getBoundingClientRect().height}px`;
+  const to = `${open ? node.scrollHeight : 0}px`;
+  node.style.height = to; // the end state, which the animation reveals
+  node.animate({ height: [from, to] }, { duration: 340, easing: EASE_OUT });
   if (open) {
     window.setTimeout(() => {
       node.style.height = "auto";
@@ -84,10 +86,11 @@ export function confettiBurst(origin: HTMLElement): void {
     note.style.left = `${rect.left + rect.width / 2}px`;
     note.style.top = `${rect.top}px`;
     document.body.append(note);
-    animate(
-      note,
-      { transform: [`translate(0,0) rotate(0deg)`, `translate(${dx}px,${dy}px) rotate(${dx}deg)`], opacity: [1, 0] },
-      { duration: 1.0 },
-    ).finished.then(() => note.remove());
+    note
+      .animate(
+        { transform: [`translate(0,0) rotate(0deg)`, `translate(${dx}px,${dy}px) rotate(${dx}deg)`], opacity: [1, 0] },
+        { duration: 1000, easing: EASE_OUT, fill: "forwards" },
+      )
+      .finished.then(() => note.remove(), () => note.remove());
   }
 }

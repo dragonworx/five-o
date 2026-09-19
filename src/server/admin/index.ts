@@ -15,7 +15,7 @@ async function buildAdmin(): Promise<string> {
     entrypoints: [join(import.meta.dir, "..", "..", "admin", "main.ts")],
     target: "browser",
     minify: process.env.NODE_ENV === "production",
-    sourcemap: "inline",
+    sourcemap: process.env.NODE_ENV === "production" ? "none" : "inline",
   });
   if (!result.success) {
     console.error("Admin build failed:", result.logs);

@@ -128,8 +128,8 @@ export function buildRsvpForm({ onSaved }: RsvpFormOptions): RsvpForm {
     class: "input",
     type: "text",
     value: state.name,
-    placeholder: "Your name",
-    attrs: { "aria-label": "Your name", autocomplete: "name", required: "true" },
+    placeholder: "Your real full name",
+    attrs: { "aria-label": "Your real full name", autocomplete: "name", required: "true" },
   });
   on(nameInput, "input", () => {
     state.name = nameInput.value;
@@ -204,7 +204,7 @@ export function buildRsvpForm({ onSaved }: RsvpFormOptions): RsvpForm {
   }
 
   const fields = [
-    el("label", { class: "field" }, [el("span", { class: "field-label" }, ["Your name"]), nameInput]),
+    el("label", { class: "field" }, [el("span", { class: "field-label" }, ["Your real full name"]), nameInput]),
     el("h2", { class: "attend-question" }, [copy().attendingQuestion]),
     el("div", { class: "choice-grid" }, [yesCard, noCard]),
     yesSection,

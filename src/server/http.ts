@@ -62,12 +62,14 @@ export function tooManyRequests(retryAfterSeconds: number): Response {
   });
 }
 
+// With trustProxy, the right-most X-Forwarded-For entry is the one our own proxy
+// (Caddy) wrote; anything to its left came from the client and can be forged.
 export function getClientIp(req: Request, server: IpServer): string {
   if (CONFIG.server.trustProxy) {
     const xff = req.headers.get("x-forwarded-for");
     if (xff) {
-      const first = xff.split(",")[0]?.trim();
-      if (first) return first;
+      const last = xff.split(",").at(-1)?.trim();
+      if (last) return last;
     }
   }
   return server.requestIP(req)?.address ?? "0.0.0.0";
