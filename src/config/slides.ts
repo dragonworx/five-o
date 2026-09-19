@@ -7,23 +7,28 @@ export default {
     items: [
       {
         src: "/img/slides/sperm.jpeg",
-        caption: "1976. It all started here - first place out of several million.",
-        alt: "1976. It all started here - first place out of several million",
+        caption: "1976. First place out of several million.",
+        alt: "1976. First place out of several million",
       },
       {
         src: "/img/slides/young-genius-award.jpeg",
-        caption: "1988. Accepted the Young Genius of the Year award. Peaked early.",
-        alt: "1988. Accepted the Young Genius of the Year award. Peaked early.",
+        caption: "1981. Youngest person ever to not need to go to university.",
+        alt: "1981. Youngest person ever to not need to go to university.",
       },
       {
         src: "/img/slides/chess-boxing.jpeg",
-        caption: "1998. Undefeated chess-boxing champion. Checkmate, then a left hook.",
-        alt: "1998. Undefeated chess-boxing champion. Checkmate, then a left hook.",
+        caption: "1986. Undefeated chess-boxing champion. Checkmate, then check, check, left hook.",
+        alt: "1986. Undefeated chess-boxing champion. Checkmate, then check, check, left hook.",
+      },
+      {
+        src: "/img/slides/space-walk.jpeg",
+        caption: "1998. Helped build the International Space Station.",
+        alt: "1998. Helped build the International Space Station.",
       },
       {
         src: "/img/slides/illuminati.jpeg",
-        caption: "2003. Finally inducted into the Illuminati by the lizard people.",
-        alt: "2003. Finally inducted into the Illuminati by the lizard people.",
+        caption: "2003. Finally, inducted into the Illuminati by the lizard people, west chapter.",
+        alt: "2003. Finally, inducted into the Illuminati by the lizard people, west chapter.",
       },
       {
         src: "/img/slides/jumped-grand-canyon.jpeg",
@@ -36,19 +41,14 @@ export default {
         alt: "2011. Cut down the mightiest tree in the forest... wiiiith... a HERRING!",
       },
       {
-        src: "/img/slides/space-walk.jpeg",
-        caption: "2015. Fixed the fridge on the International Space Station.",
-        alt: "2015. Fixed the fridge on the International Space Station.",
-      },
-      {
         src: "/img/slides/yodeling.jpeg",
-        caption: "2017. Released critically aclaimed Death Metal Yodelling album.",
-        alt: "2017. Release critically aclaimed Death Metal Yodelling album.",
+        caption: "2017. Released critically aclaimed Death Metal Yodelling album 'Yodel Ay Ee BLEGH!'.",
+        alt: "2017. Released critically aclaimed Death Metal Yodelling album 'Yodel Ay Ee BLEGH!'.",
       },
       {
         src: "/img/slides/beethoven.jpeg",
-        caption: "2018. Went on to win a Grammy for next Yodelling albumn with Beethoven.",
-        alt: "2018. Went on to win a Grammy for next Yodelling albumn with Beethoven.",
+        caption: "2018. Won a Grammy for collaborating with Beethoven on 'Yodel Ay Ee Fur Elise'.",
+        alt: "2018. Won a Grammy for collaborating with Beethoven on 'Yodel Ay Ee Fur Elise'.",
       },
       {
         src: "/img/slides/starship-troopers.jpeg",

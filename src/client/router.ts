@@ -17,7 +17,12 @@ export function registerScreen(name: ScreenName, render: Renderer): void {
 function renderScreen(name: ScreenName): void {
   const render = screens.get(name);
   if (!render || !root) return;
-  transitionTo(() => render(root as HTMLElement));
+  // Reset inside the transition callback so the new screen is captured at the top,
+  // not at the scroll offset the previous screen was left at.
+  transitionTo(() => {
+    render(root as HTMLElement);
+    window.scrollTo(0, 0);
+  });
 }
 
 export function navigate(name: ScreenName, opts: { replace?: boolean } = {}): void {
@@ -35,6 +40,8 @@ function currentScreenFromHash(): ScreenName {
 
 export function startRouter(mountPoint: HTMLElement, initial: ScreenName): void {
   root = mountPoint;
+  // Every screen starts at the top; stop the browser restoring an old offset on back/forward.
+  history.scrollRestoration = "manual";
   window.addEventListener("popstate", (ev) => {
     const state = ev.state as { screen?: ScreenName } | null;
     const name = state?.screen ?? currentScreenFromHash();

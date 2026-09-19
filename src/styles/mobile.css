@@ -8,6 +8,7 @@
   max-width: var(--measure);
   margin: 0 auto;
   padding: 0 var(--space-4) calc(var(--touch) + env(safe-area-inset-bottom) + var(--space-6));
+  text-align: center;
 }
 
 .screen { flex: 1; padding-bottom: var(--space-6); }

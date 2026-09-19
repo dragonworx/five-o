@@ -14,7 +14,7 @@ const copy: CopyConfig = {
   attendingYes: "Wouldn’t miss it! 🥳",
   attendingNo: "Sorry, can’t make it 🥲",
   declineThanks: "Gutted you can’t make it. Have a drink on me anyway.",
-  slidesCta: "Remember the good old days!",
+  slidesCta: "Ali's Life Slideshow!",
   slidesIntro: "Fifty years in {count} pictures.",
   detailsIntro: "See you there, {name}!",
   musicianYes: "Amazing. Bring your instrument.",

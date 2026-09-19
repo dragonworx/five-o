@@ -6,7 +6,7 @@ import type { EventConfig } from "./config.types";
 
 const event: EventConfig = {
   hostName: "Ali",
-  title: "Ali's big Five-O Party!",
+  title: "Ali's big Five-O!",
   tagline: "Half a century to make one party.",
   venueName: "Kincumba Mountain Reserve",
   addressLines: ["Island View Dr", "Kincumber", "NSW 2251"],
@@ -15,8 +15,8 @@ const event: EventConfig = {
   endsAt: "2026-10-10T23:30:00+10:00",
   timezone: "Australia/Sydney",
   calendarTitle: "Ali's 50th",
-  notes: ["Kids friendly", "Food and drinks will be provided", "BYO whatever you ingest", "It's in the Kiosk building"],
-  rsvpDeadline: "2026-11-01T23:59:59+11:00",
+  notes: ["Kids Welcome", "There will be jamming", "Dinner will be catered", "BYO", "In the Kiosk building"],
+  rsvpDeadline: "2026-10-01T23:59:59+11:00",
 };
 
 export default event;
