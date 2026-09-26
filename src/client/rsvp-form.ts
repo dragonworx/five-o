@@ -181,7 +181,7 @@ export interface RsvpForm {
   fields: HTMLElement[];
   /** The submit button, so the caller can place it in an action bar. */
   submit: HTMLButtonElement;
-  /** Focuses the empty name field on touch devices (raising the keyboard). Call once the form is in the DOM. */
+  /** Focuses the empty name field. Call once the form is in the DOM. */
   focusName: () => void;
 }
 
@@ -348,7 +348,7 @@ export function buildRsvpForm({ onSaved, belowChoice }: RsvpFormOptions): RsvpFo
     error,
   ];
   function focusName(): void {
-    if (existing || state.name.trim() || !window.matchMedia("(pointer: coarse)").matches) return;
+    if (existing || state.name.trim()) return;
     nameInput.focus();
   }
 
