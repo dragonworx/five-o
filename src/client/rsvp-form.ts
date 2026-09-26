@@ -206,12 +206,14 @@ export function buildRsvpForm({ onSaved, belowChoice }: RsvpFormOptions): RsvpFo
       "aria-label": "Your full name",
       autocomplete: "name",
       required: "true",
+      maxlength: "120", // the server's name limit (rsvpRequestSchema)
       "aria-describedby": "name-error",
     },
   });
   // Full names are unique per guest: a taken name shows a warning and blocks submit.
   const nameWarning = el("p", { class: "field-error", attrs: { id: "name-error", role: "alert" } });
   let nameTaken = false;
+  let submitting = false;
   let nameCheckTimer: number | undefined;
   let nameCheckSeq = 0;
 
@@ -280,7 +282,9 @@ export function buildRsvpForm({ onSaved, belowChoice }: RsvpFormOptions): RsvpFo
 
   function updateSubmit(): void {
     const ready = state.name.trim().length > 0 && state.attending !== null && !nameTaken;
-    submit.disabled = !ready;
+    // A name check can land mid-submit (clicking the button blurs the name field);
+    // it must not re-enable the button while the RSVP is in flight.
+    submit.disabled = !ready || submitting;
     // Once there is a usable name, the button gets the loud hero style so it isn't missed.
     submit.classList.toggle("btn-hero", state.name.trim().length > 0 && !nameTaken);
     // An empty name pulses periodically, focused or not (see .input[data-empty] in base.css).
@@ -294,6 +298,7 @@ export function buildRsvpForm({ onSaved, belowChoice }: RsvpFormOptions): RsvpFo
       return;
     }
     error.textContent = "";
+    submitting = true;
     submit.disabled = true;
     try {
       const res = await rsvp({
@@ -311,13 +316,14 @@ export function buildRsvpForm({ onSaved, belowChoice }: RsvpFormOptions): RsvpFo
       setOverriddenFrom(null);
       onSaved(res.guest, !answered);
     } catch (err) {
+      submitting = false;
       if (err instanceof ApiError && err.code === NAME_TAKEN) {
         setNameTaken(true); // also disables submit until the name changes
         nameInput.focus();
         return;
       }
       error.textContent = "Something went wrong. Please try again.";
-      submit.disabled = false;
+      updateSubmit();
     }
   }
 

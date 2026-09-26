@@ -141,8 +141,15 @@ export function flashChars(node: HTMLElement, durationMs: number): void {
   requestAnimationFrame(frame);
 }
 
+// Only the latest collapse() call on a node may finish it: a quick yes → no → yes
+// would otherwise let the "no" timer hide the section after it reopened.
+const collapseGen = new WeakMap<HTMLElement, number>();
+
 // Height-animated expand/collapse for the headcount/diet steps.
 export function collapse(node: HTMLElement, open: boolean): void {
+  const gen = (collapseGen.get(node) ?? 0) + 1;
+  collapseGen.set(node, gen);
+  const current = (): boolean => collapseGen.get(node) === gen;
   if (prefersReducedMotion()) {
     node.style.height = open ? "auto" : "0px";
     node.style.overflow = open ? "" : "hidden";
@@ -157,12 +164,13 @@ export function collapse(node: HTMLElement, open: boolean): void {
   node.animate({ height: [from, to] }, { duration: 340, easing: EASE_OUT });
   if (open) {
     window.setTimeout(() => {
+      if (!current()) return;
       node.style.height = "auto";
       node.style.overflow = "";
     }, 340);
   } else {
     window.setTimeout(() => {
-      node.hidden = true;
+      if (current()) node.hidden = true;
     }, 340);
   }
 }

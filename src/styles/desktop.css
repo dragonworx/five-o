@@ -38,19 +38,16 @@
     width: 100%;
     max-width: 52rem;
     margin: 0 auto;
-    padding: var(--space-8) var(--space-8);
+    /* Room for the fixed action bar, so the last field never hides behind it. */
+    padding: var(--space-8) var(--space-8) calc(var(--touch) + var(--space-8) * 2 + var(--space-4));
   }
 
-  /* Action bar becomes inline on desktop rather than a fixed bar. */
+  /* The action bar stays fixed to the bottom, as on mobile, but only across the
+     right column. Inline, it fell below the fold on laptop screens and guests
+     filled in the form without ever seeing the RSVP button. The left offset
+     matches the header column (minmax(320px, 34%) of the full-width shell). */
   .action-bar {
-    position: static;
-    grid-column: 2;
-    max-width: 52rem;
-    margin: 0 auto var(--space-8);
-    padding: 0 var(--space-8);
-    background: none;
-    backdrop-filter: none;
-    border-top: none;
+    left: max(320px, 34%);
   }
   .action-bar .btn { flex: 0 1 auto; min-width: 12rem; }
 
